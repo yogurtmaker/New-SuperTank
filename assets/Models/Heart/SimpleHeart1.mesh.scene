@@ -1,0 +1,39 @@
+<scene export_time="1460310932.2916503" exported_by="Guo Jing Wu" formatVersion="1.0.1" previous_export_time="1460310849.8405228" >
+  <nodes >
+    <node name="Camera" >
+      <position x="-5.708261" y="7.013363" z="9.021539" />
+      <rotation qw="0.791193" qx="0.488252" qy="-0.307094" qz="0.203267" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <camera fov="0.5033799435163735" name="Camera" projectionType="perspective" >
+        <clipping far="100.0" farPlaneDist="100.0" near="0.10000000149011612" nearPlaneDist="0.10000000149011612" />
+      </camera>
+    </node>
+    <node name="Heart" >
+      <position x="-0.017071" y="3.715037" z="-0.044855" />
+      <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+      <scale x="1.325019" y="2.563288" z="2.585827" />
+      <user_data name="cycles_visibility" type="IDPropertyGroup" value='&lt;bpy id prop: owner="OBHeart", name="cycles_visibility", address=0x0000022CC71768B8&gt;' />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <entity actor="False" anisotropic_friction="False" damping_rot="0.10000000149011612" damping_trans="0.03999999910593033" friction_x="1.0" friction_y="1.0" friction_z="1.0" ghost="False" inertia_tensor="0.4000000059604645" lock_rot_x="False" lock_rot_y="False" lock_rot_z="False" lock_trans_x="False" lock_trans_y="False" lock_trans_z="False" mass="1.0" mass_radius="1.0" meshFile="Sphere.mesh" name="Sphere" physics_type="STATIC" velocity_max="0.0" velocity_min="0.0" >
+        <user_data name="cycles" type="IDPropertyGroup" value='&lt;bpy id prop: owner="MESphere", name="cycles", address=0x0000022CC7175598&gt;' />
+      </entity>
+    </node>
+  </nodes>
+  <externals >
+    <item type="material" >
+      <file name="C:\Users\Guo Jing Wu\Dropbox\Computer Science\jMonkey\SuperTank\assets\Models\Heart\HeartColor.material" />
+    </item>
+  </externals>
+  <environment >
+    <colourAmbient b="0.0" g="0.0" r="0.0" />
+    <colourDiffuse b="0.05087608844041824" g="0.05087608844041824" r="0.05087608844041824" />
+    <colourBackground b="0.05087608844041824" g="0.05087608844041824" r="0.05087608844041824" />
+  </environment>
+</scene>

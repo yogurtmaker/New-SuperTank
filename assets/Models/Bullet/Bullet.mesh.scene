@@ -1,0 +1,105 @@
+<scene export_time="1459712107.567736" exported_by="Guo Jing Wu" formatVersion="1.0.1" previous_export_time="0" >
+  <nodes >
+    <node name="Hemi.002" >
+      <position x="6.783004" y="3.595822" z="-1.100781" />
+      <rotation qw="0.953532" qx="-0.301292" qy="0.000000" qz="-0.000000" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+    </node>
+    <node name="Hemi.001" >
+      <position x="4.730204" y="3.595822" z="-1.100781" />
+      <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+    </node>
+    <node name="Hemi" >
+      <position x="4.730204" y="4.702591" z="-1.100781" />
+      <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+    </node>
+    <node name="Lamp.001" >
+      <position x="-4.108751" y="7.579301" z="10.225160" />
+      <rotation qw="0.882785" qx="0.420171" qy="-0.139551" qz="0.157076" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Lamp.001" powerScale="2.0" shadow="true" type="spot" >
+        <position x="-4.108751" y="7.579301" z="10.225160" />
+        <lightAttenuation constant="1.0" linear="0.03333335240683057" quadratic="0.0" range="5000" />
+        <direction x="-0.16" y="-0.598" z="0.786" />
+        <spotLightRange falloff="1.0" inner="1.112647370642442" outer="1.3089969158172607" />
+        <colourDiffuse b="1.0" g="0.6703385710716248" r="0.6449726223945618" />
+        <colourSpecular b="1.0" g="0.6703385710716248" r="0.6449726223945618" />
+        <colourShadow b="1.0" g="0.6703385710716248" r="0.6449726223945618" />
+      </light>
+    </node>
+    <node name="Circle" >
+      <position x="3.751422" y="0.863539" z="-1.511559" />
+      <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+      <scale x="0.361928" y="0.361928" z="0.361928" />
+      <user_data name="cycles_visibility" type="IDPropertyGroup" value='&lt;bpy id prop: owner="OBCircle", name="cycles_visibility", address=0x0000021993790AB8&gt;' />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <entity actor="False" anisotropic_friction="False" damping_rot="0.10000000149011612" damping_trans="0.03999999910593033" friction_x="1.0" friction_y="1.0" friction_z="1.0" ghost="False" inertia_tensor="0.4000000059604645" lock_rot_x="False" lock_rot_y="False" lock_rot_z="False" lock_trans_x="False" lock_trans_y="False" lock_trans_z="False" mass="1.0" mass_radius="1.0" meshFile="Circle.mesh" name="Circle" physics_type="STATIC" velocity_max="0.0" velocity_min="0.0" >
+        <user_data name="cycles" type="IDPropertyGroup" value='&lt;bpy id prop: owner="MECircle", name="cycles", address=0x0000021993790F38&gt;' />
+      </entity>
+    </node>
+    <node name="Lamp" >
+      <position x="10.059711" y="7.579301" z="10.225160" />
+      <rotation qw="0.832680" qx="0.442042" qy="0.324696" qz="-0.076260" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Lamp" powerScale="5.0" shadow="true" type="spot" >
+        <position x="10.059711" y="7.579301" z="10.225160" />
+        <lightAttenuation constant="1.0" linear="0.03333335240683057" quadratic="0.0" range="5000" />
+        <direction x="-0.16" y="-0.598" z="0.786" />
+        <spotLightRange falloff="1.0" inner="1.112647370642442" outer="1.3089969158172607" />
+        <colourDiffuse b="0.6372941136360168" g="0.9635639786720276" r="1.0" />
+        <colourSpecular b="0.6372941136360168" g="0.9635639786720276" r="1.0" />
+        <colourShadow b="0.6372941136360168" g="0.9635639786720276" r="1.0" />
+      </light>
+    </node>
+    <node name="Camera" >
+      <position x="5.465725" y="3.815405" z="6.933884" />
+      <rotation qw="0.774522" qx="0.614934" qy="0.115848" qz="-0.092475" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <camera fov="0.6158138623358761" name="Camera" projectionType="perspective" >
+        <clipping far="100.0" farPlaneDist="100.0" near="0.10000000149011612" nearPlaneDist="0.10000000149011612" />
+      </camera>
+    </node>
+  </nodes>
+  <externals >
+    <item type="material" >
+      <file name="C:\Users\Guo Jing Wu\Dropbox\Computer Science\jMonkey\SuperTank\assets\Models\Patrone.material" />
+    </item>
+    <item type="material" >
+      <file name="C:\Users\Guo Jing Wu\Dropbox\Computer Science\jMonkey\SuperTank\assets\Models\Projektil_neu.material" />
+    </item>
+  </externals>
+  <environment >
+    <colourDiffuse b="0.6981790661811829" g="0.679537296295166" r="0.24508094787597656" />
+    <colourBackground b="0.6981790661811829" g="0.679537296295166" r="0.24508094787597656" />
+    <colourAmbient b="0.0" g="0.0" r="0.0" />
+  </environment>
+</scene>

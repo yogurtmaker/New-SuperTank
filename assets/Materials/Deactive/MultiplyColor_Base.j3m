@@ -1,0 +1,10 @@
+Material Base : MatDefs/Dissolve.j3md {
+     MaterialParameters {
+        NormalMap : Models/jme_lightblow_nor.png
+        Nor_Inv_Y : true
+        Nor_Inv_X : false
+        DiffuseMap : Models/jme_lightblow_dif.png
+     }
+    AdditionalRenderState {
+    }
+}
