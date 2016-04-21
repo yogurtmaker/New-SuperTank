@@ -18,6 +18,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,13 +26,16 @@ public class Tank {
 
     SimpleApplication sa;
     Main main;
-    Node tankNode, bulletStartNode, walkDirNode;
+    Node tankNode, bulletStartNode, walkDirNode, axis;
     CharacterControl tankControl;
     List<Bullet> bulletList;
     Shield shield;
     Dust dust;
-    Geometry bar;
-    Vector3f walkDirection = new Vector3f(0, 0, 0), viewDirection = new Vector3f(0, 0, 0);
+    Geometry bar, map, playerDot, direction;
+    Node mapPlayer = new Node();
+    Geometry[] enemyDots = new Geometry[Game.ENEMYNUMBER];
+    Vector3f walkDirection = new Vector3f(0, 0, 0), viewDirection = new Vector3f(0, 0, 0),
+            mapPos = new Vector3f(-12, 9.3f, 0);
     boolean force = false, second = false, forward = false, backward = false,
             leftRotate = false, rightRotate = false;
     private float airTime = 0;
@@ -76,6 +80,9 @@ public class Tank {
         bar.setLocalTranslation(0, 3.3f, 2);
         bar.setQueueBucket(RenderQueue.Bucket.Transparent);
         tankNode.attachChild(bar);
+
+        makeMap();
+
     }
     private ActionListener actionListener = new ActionListener() {
         public void onAction(String binding, boolean isPressed, float tpf) {
@@ -147,10 +154,61 @@ public class Tank {
         main.getInputManager().addListener(actionListener, "Shield");
     }
 
-    public void updateTank(float tpf, BitmapText text) {
+    protected void makeMap() {
+        Box box1 = new Box(5.5f, 5.5f, 0.3f);
+        map = new Geometry("bar", box1);
+        Material matMap = new Material(main.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        matMap.setColor("Color", new ColorRGBA(0.4f, 0.1f, 0f, 0.2f));
+        matMap.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        map.setMaterial(matMap);
+        map.setQueueBucket(RenderQueue.Bucket.Transparent);
+        axis = new Node();
+        axis.setLocalTranslation(mapPos);
+        tankNode.attachChild(axis);
+        axis.attachChild(map);
+        axis.attachChild(mapPlayer);
+
+        Sphere dot = new Sphere(100, 100, 0.25f);
+        playerDot = new Geometry("playerDot", dot);
+        Material matDot = new Material(main.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        matDot.setColor("Color", new ColorRGBA(0f, 0.99f, 0f, 0.6f));
+        matDot.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        playerDot.setMaterial(matDot);
+        playerDot.setQueueBucket(RenderQueue.Bucket.Transparent);
+        mapPlayer.attachChild(playerDot);
+
+        Box box2 = new Box(0.05f, 0.1f, 0.1f);
+        direction = new Geometry("dir", box2);
+        direction.setMaterial(matDot);
+        direction.setQueueBucket(RenderQueue.Bucket.Transparent);
+        direction.setLocalTranslation(0, 0.3f, 0);
+        mapPlayer.attachChild(direction);
+
+        for (int i = 0; i < Game.ENEMYNUMBER; i++) {
+            enemyDots[i] = new Geometry("enemyDots", dot);
+            Material matDote = new Material(main.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+            matDote.setColor("Color", new ColorRGBA(0.99f, 0f, 0f, 0.6f));
+            matDote.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+            enemyDots[i].setMaterial(matDote);
+            enemyDots[i].setQueueBucket(RenderQueue.Bucket.Transparent);
+            //enemyDots[i].setLocalTranslation(0.5f, 0.5f,0);
+            axis.attachChild(enemyDots[i]);
+        }
+    }
+
+    protected void updateMap(Vector3f playerPos, Vector3f[] enemyPos) {
+        float revise = 80f;
+        for (int i = 0; i < Game.ENEMYNUMBER; i++) {
+            //System.out.println((enemyPos[i].x - playerPos.x)/revise + "    " + (enemyPos[i].z - playerPos.z)/revise);
+            enemyDots[i].setLocalTranslation((enemyPos[i].x - playerPos.x) / revise, (enemyPos[i].z - playerPos.z) / revise, 0);
+        }
+    }
+
+    public void updateTank(float tpf, BitmapText text, Vector3f playerPos, Vector3f[] enemyPos) {
         for (Bullet bullet : bulletList) {
             bullet.update(tpf);
         }
+        updateMap(playerPos, enemyPos);
         Vector3f camDir = main.getCamera().getDirection().mult(0.2f);
         Vector3f camLeft = main.getCamera().getLeft().mult(0.2f);
         Quaternion rotLeft = new Quaternion().fromAngles(0, 0, -FastMath.PI * tpf / 4);
@@ -163,17 +221,19 @@ public class Tank {
         viewDirection.set(camDir);
         walkDirection.set(0, 0, 0);
         time = time + tpf;
-        if (time > 15f) {
+        if (time > 10f) {
             tankControl.setGravity(30f);
             if (forward) {
                 walkDirection.addLocal(camDir.mult(5f));
                 if (leftRotate) {
                     viewDirection.addLocal(camLeft.mult(0.0275f));
+                    mapPlayer.rotate(0,0,-tpf);
                     if (tankNode.getChild(0).getLocalRotation().getZ() >= limLeft.getZ()) {
                         tankNode.getChild(0).rotate(rotLeft);
                     }
                 } else if (rightRotate) {
                     viewDirection.addLocal(camLeft.mult(0.0275f).negate());
+                    mapPlayer.rotate(0,0,tpf);
                     if (tankNode.getChild(0).getLocalRotation().getZ() <= limRight.getZ()) {
                         tankNode.getChild(0).rotate(rotRight);
                     }

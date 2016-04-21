@@ -24,6 +24,8 @@ import com.jme3.scene.CameraNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.CameraControl;
 import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -37,6 +39,7 @@ public class Game extends AbstractAppState implements ActionListener {
     private Node[] modelEnemyTank;
     private CharacterControl player;
     private CharacterControl[] controlEnemyTank;
+    Vector3f[] enemyPos = new Vector3f[ENEMYNUMBER];
     Main main;
     CameraNode camNode;
     Ground ground;
@@ -46,10 +49,11 @@ public class Game extends AbstractAppState implements ActionListener {
     Vector3f playerBarPos = new Vector3f(820, 355, 0), gameEndPos = new Vector3f(520, 750, 0),
             numOfBulletRemainPos = new Vector3f(20, 800, 0);
     Material mats[];
-    final int ENEMYNUMBER = 4, BULLETDAMAGE = 20;
+    public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20;
     boolean rotate = false;
     int enemyRemain = 4;
     boolean pause = false, isDemo;
+    List<Powerup> powerupList;
 
     protected Game(boolean iDemoMode) {
         isDemo = iDemoMode;
@@ -75,7 +79,10 @@ public class Game extends AbstractAppState implements ActionListener {
             }
         } else {
             texts[3].setText("Bullet remain:" + tank.numberOfBulletRemain);
-            tank.updateTank(tpf, texts[1]);
+            for (int i = 0; i < ENEMYNUMBER; i++) {
+                enemyPos[i] = enemyTank[i].enemyNode.getWorldTranslation();
+            }
+            tank.updateTank(tpf, texts[1], tank.tankNode.getWorldTranslation(), enemyPos);
             for (int i = 0; i < ENEMYNUMBER; i++) {
                 enemyTank[i].updateEnemy(tpf, tank.tankNode.getWorldTranslation());
             }
@@ -104,6 +111,8 @@ public class Game extends AbstractAppState implements ActionListener {
         for (int i = 0; i < ENEMYNUMBER; i++) {
             for (int j = 0; j < enemyTank[i].bulletList.size(); j++) {
                 BoundingVolume bv = enemyTank[i].bulletList.get(j).bullet.getWorldBound();
+                BoundingVolume shieldBound = tank.shield.nodeshield.getWorldBound();
+                BoundingVolume tankBound = tank.tankNode.getWorldBound();
                 tank.shield.nodeshield.getChild(0).collideWith(bv, crs);
                 if (crs.size() > 0) {
                     tank.shield.forceShieldControl.registerHit(enemyTank[i].bulletList.get(j).bullet.getWorldTranslation());
@@ -136,6 +145,54 @@ public class Game extends AbstractAppState implements ActionListener {
                 }
             }
         }
+        List<Powerup> tempList = new ArrayList<Powerup>();
+        for (int i = 0; i < powerupList.size(); i++) {
+            Powerup pUp = powerupList.get(i);
+            BoundingVolume pUpBound = pUp.geomBoundingBox.getWorldBound();
+            tank.shield.nodeshield.getChild(0).collideWith(pUpBound, crs);
+            if (crs.size() > 0) {
+                switch (pUp.num) {
+                    case 1:
+                        tank.hitPoints += BULLETDAMAGE;
+                        tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                        break;
+                    case 2:
+                        tank.numberOfBulletRemain += 100;
+                        break;
+                    case 3:
+                        tank.shield.hitPoints += BULLETDAMAGE;
+                        tank.shield.bar.setLocalScale((float) (tank.shield.hitPoints / 100.0), 1, 1);
+                        break;
+                }
+                main.getRootNode().detachChild(pUp);
+                tempList.add(pUp);
+                crs.clear();
+            } else {
+                tank.tankNode.getChild(0).collideWith(pUpBound, crs);
+                if (crs.size() > 0) {
+                    switch (pUp.num) {
+                        case 1:
+                            tank.hitPoints += BULLETDAMAGE;
+                            tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                            break;
+                        case 2:
+                            tank.numberOfBulletRemain += 100;
+                            break;
+
+                        case 3:
+                            tank.shield.hitPoints += BULLETDAMAGE;
+                            tank.shield.bar.setLocalScale((float) (tank.shield.hitPoints / 100.0), 1, 1);
+                            break;
+                    }
+                    main.getRootNode().detachChild(pUp);
+                    tempList.add(pUp);
+                    crs.clear();
+                }
+            }
+        }
+        powerupList.removeAll(tempList);
+
+
         for (int i = 0; i < ENEMYNUMBER; i++) {
             BoundingVolume bv = tank.tankNode.getChild(0).getWorldBound();
             enemyTank[i].enemyNode.getChild(0).collideWith(bv, crs);
@@ -183,16 +240,13 @@ public class Game extends AbstractAppState implements ActionListener {
                         float rand = FastMath.nextRandomFloat();
                         if (0.5 > rand) {
                             Powerup health = new Health(main);
-                            health.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
-                            main.getRootNode().attachChild(health);
+                            addPowerup(health, i);
                         } else if (0.9 > rand) {
                             Powerup energy = new Battery(main);
-                            energy.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
-                            main.getRootNode().attachChild(energy);
+                            addPowerup(energy, i);
                         } else {
                             Powerup defense = new Defense(main);
-                            defense.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
-                            main.getRootNode().attachChild(defense);
+                            addPowerup(defense, i);
                         }
                         enemyTank[i].enemyNode.setLocalTranslation(-100, -100, -100);
                         enemyTank[i].hitPoints = 0;
@@ -233,6 +287,7 @@ public class Game extends AbstractAppState implements ActionListener {
     }
 
     private void createCharacter() {
+        powerupList = new ArrayList<Powerup>();
         tank = new Tank(main);
         modelPlayer = tank.tankNode;
         player = tank.tankControl;
@@ -241,6 +296,16 @@ public class Game extends AbstractAppState implements ActionListener {
         main.bulletAppState.getPhysicsSpace().add(player);
     }
 
+    private void addPowerup(Powerup powerup, int i) {
+        powerupList.add(powerup);
+        powerup.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
+        main.getRootNode().attachChild(powerup);
+//        
+//        RigidBodyControl phyPowerUp = new RigidBodyControl(0);
+//      powerup.geomBoundingBox.addControl(phyPowerUp);
+//        bulletAppState.getPhysicsSpace().add(powerup);
+
+    }
 
     private void createEnemy() {
         enemyTank = new EnemyTank[ENEMYNUMBER];
