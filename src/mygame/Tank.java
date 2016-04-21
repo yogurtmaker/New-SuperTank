@@ -144,7 +144,7 @@ public class Tank implements ActionListener {
         viewDirection.set(camDir);
         walkDirection.set(0, 0, 0);
         time = time + tpf;
-        if (time > 1f) {
+        if (time > 15f) {
             tankControl.setGravity(30f);
             if (forward) {
                 walkDirection.addLocal(camDir.mult(5f));

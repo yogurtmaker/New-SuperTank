@@ -4,6 +4,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.bounding.BoundingVolume;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -23,6 +24,8 @@ import com.jme3.scene.control.CameraControl;
 import com.jme3.system.AppSettings;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main extends SimpleApplication implements ActionListener {
     
@@ -46,6 +49,8 @@ public class Main extends SimpleApplication implements ActionListener {
     boolean rotate = false;
     int enemyRemain = 4;
     boolean pause = false;
+    List<Powerup> powerupList;
+   
     
     public static void main(final String[] args) {
         Main app = new Main();
@@ -117,6 +122,8 @@ public class Main extends SimpleApplication implements ActionListener {
         for (int i = 0; i < ENEMYNUMBER; i++) {
             for (int j = 0; j < enemyTank[i].bulletList.size(); j++) {
                 BoundingVolume bv = enemyTank[i].bulletList.get(j).bullet.getWorldBound();
+                 BoundingVolume shieldBound =  tank.shield.nodeshield.getWorldBound();
+                  BoundingVolume tankBound = tank.tankNode.getWorldBound();
                 tank.shield.nodeshield.getChild(0).collideWith(bv, crs);
                 if (crs.size() > 0) {
                     tank.shield.forceShieldControl.registerHit(enemyTank[i].bulletList.get(j).bullet.getWorldTranslation());
@@ -149,6 +156,50 @@ public class Main extends SimpleApplication implements ActionListener {
                 }
             }
         }
+          List<Powerup> tempList = new ArrayList<Powerup>();
+        for (int i=0;i< powerupList.size();i++) {
+            Powerup pUp = powerupList.get(i);           
+            BoundingVolume pUpBound = pUp.geomBoundingBox.getWorldBound();
+            tank.shield.nodeshield.getChild(0).collideWith(pUpBound, crs);
+            if (crs.size() > 0) {               
+                switch (pUp.num) {                
+                    case 1:
+                        tank.hitPoints += BULLETDAMAGE;
+                        tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                        break;
+                    case 2:tank.numberOfBulletRemain +=100;
+                         break;      
+                    case 3: tank.shield.hitPoints += BULLETDAMAGE;
+                        tank.shield.bar.setLocalScale((float) (tank.shield.hitPoints / 100.0), 1, 1);
+                        break;
+                }
+                this.rootNode.detachChild(pUp);
+               tempList.add(pUp);
+                crs.clear();
+            } else {
+                tank.tankNode.getChild(0).collideWith(pUpBound, crs);
+                 if (crs.size() > 0) {
+                switch (pUp.num) {
+                    case 1:
+                        tank.hitPoints += BULLETDAMAGE;
+                        tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                        break;
+                    case 2:tank.numberOfBulletRemain +=100;
+                         break;
+                       
+                    case 3: tank.shield.hitPoints += BULLETDAMAGE;
+                        tank.shield.bar.setLocalScale((float) (tank.shield.hitPoints / 100.0), 1, 1);
+                        break;
+                }
+                this.rootNode.detachChild(pUp);
+                tempList.add(pUp);
+                crs.clear();
+            }
+            }
+        }
+        powerupList.removeAll(tempList);
+        
+        
         for (int i = 0; i < ENEMYNUMBER; i++) {
             BoundingVolume bv = tank.tankNode.getChild(0).getWorldBound();
             enemyTank[i].enemyNode.getChild(0).collideWith(bv, crs);
@@ -195,17 +246,14 @@ public class Main extends SimpleApplication implements ActionListener {
                         rootNode.detachChild(enemyTank[i].enemyNode);
                         float rand = FastMath.nextRandomFloat();
                         if (0.5 > rand) {
-                            Powerup health = new Health(this);
-                            health.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
-                            this.rootNode.attachChild(health);
+                            Powerup health = new Health(this);                           
+                           addPowerup(health,i);
                         } else if (0.9 > rand) {
                             Powerup energy = new Battery(this);
-                            energy.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
-                            this.rootNode.attachChild(energy);
+                            addPowerup(energy,i);
                         } else {
                             Powerup defense = new Defense(this);
-                            defense.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
-                            this.rootNode.attachChild(defense);
+                              addPowerup(defense,i);
                         }
                         enemyTank[i].enemyNode.setLocalTranslation(-100, -100, -100);
                         enemyTank[i].hitPoints = 0;
@@ -225,6 +273,19 @@ public class Main extends SimpleApplication implements ActionListener {
         texts[0].setLocalTranslation(playerBarPos);
     }
     
+    private void addPowerup(Powerup powerup, int i) {
+        powerupList.add(powerup);
+        powerup.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
+        this.rootNode.attachChild(powerup);
+//        
+//        RigidBodyControl phyPowerUp = new RigidBodyControl(0);
+//      powerup.geomBoundingBox.addControl(phyPowerUp);
+//        bulletAppState.getPhysicsSpace().add(powerup);
+
+    }
+    
+
+    
     public void initText() {
         BitmapFont bmf = assetManager.loadFont("Interface/Fonts/Console.fnt");
         texts = new BitmapText[6];
@@ -240,6 +301,7 @@ public class Main extends SimpleApplication implements ActionListener {
     }
     
     private void createCharacter() {
+        powerupList = new ArrayList<Powerup>();
         tank = new Tank(this);
         modelPlayer = tank.tankNode;
         player = tank.tankControl;
