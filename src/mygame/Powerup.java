@@ -20,8 +20,8 @@ public abstract class Powerup extends Node {
 
     protected Node adjustmentNode;
     private Spatial modelData;
-    private Geometry geomBoundingBox;
-    private int num;
+    public Geometry geomBoundingBox;
+    public int num;
     Control powerControl;
 
     public Powerup(SimpleApplication sa, String filename, int num) {

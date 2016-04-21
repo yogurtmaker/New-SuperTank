@@ -8,11 +8,11 @@ import java.awt.Toolkit;
 
 public class Main extends SimpleApplication {
 
-
     static Dimension screen;
     BulletAppState bulletAppState;
     Ground ground;
     Sky sky;
+    int enemyRemain = 4;
 
     public static void main(final String[] args) {
         Main app = new Main();
