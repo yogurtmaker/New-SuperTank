@@ -33,7 +33,7 @@ public class Tank implements ActionListener {
     private float airTime = 0;
     private int resetTime;
     public float time = 0, delay = 0, hitPoints = 100;
-    Vector3f shieldBarPos = new Vector3f(820, 700, 0);
+    Vector3f shieldBarPos = new Vector3f(820, 500, 0);
     int numberOfBulletRemain = 100;
 
     public Tank(Main main) {
@@ -144,7 +144,7 @@ public class Tank implements ActionListener {
         viewDirection.set(camDir);
         walkDirection.set(0, 0, 0);
         time = time + tpf;
-        if (time > 15f) {
+        if (time > 1f) {
             tankControl.setGravity(30f);
             if (forward) {
                 walkDirection.addLocal(camDir.mult(5f));

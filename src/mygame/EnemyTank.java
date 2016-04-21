@@ -26,12 +26,12 @@ public class EnemyTank extends Enemy {
     final int ROTATETIME = 5, WALKTIME = 5, FORCETIME = 3, SHOOTTIME = 10, TRACKDISTANCE = 500, ATTACKDISTANCE = 200,
             STOPTIME = 3;
     float rotateLeftTime = 0;
-        float rotateRightTime = 0;
-        float walkForwardTime = 0;
-        float walkBackwardTime = 0;
-        float forceTime = 0;
-        float shootTime = 0;
-        float stopTime = 0;
+    float rotateRightTime = 0;
+    float walkForwardTime = 0;
+    float walkBackwardTime = 0;
+    float forceTime = 0;
+    float shootTime = 0;
+    float stopTime = 0;
     int state;
 
     public EnemyTank(Main main, Material mat) {
@@ -123,7 +123,7 @@ public class EnemyTank extends Enemy {
 
     @Override
     protected void updateEnemy(float tpf, Vector3f playerPos) {
-        if(!main.pause){
+
         Quaternion rotLeft = new Quaternion().fromAngles(0, 0, -FastMath.PI * tpf / 4);
         Quaternion rotRight = new Quaternion().fromAngles(0, 0, FastMath.PI * tpf / 4);
         Quaternion rotReset = new Quaternion().fromAngles(0, 0, 0);
@@ -204,93 +204,81 @@ public class EnemyTank extends Enemy {
                 }
             }
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //update from previous abstracontrol
-         if (time - time3 >= stateTime) {
-                stateTime = rn.nextFloat() * 5 + 5;
-                frequency = rn.nextFloat() * 2 + 1;
-                state = rn.nextInt(states.length);
-                binding = states[state];
-                time3 = time;
-            }
-            if (binding.equals("RotateLeft") && !rightRotate) {
-                leftRotate = true;
-            } else if (binding.equals("RotateRight") && !leftRotate) {
-                rightRotate = true;
-            } else if (binding.equals("WalkForward") && !backward) {
-                forward = true;
-            } else if (binding.equals("WalkBackward") && !forward) {
-                backward = true;
-            } else if (binding.equals("Shoot")) {
-                shoot = true;
-            } else if (binding.equals("Stop")) {
-                stop = true;
-            }
 
-            if (leftRotate) {
-                rotateLeftTime += tpf;
-                if (rotateLeftTime > ROTATETIME) {
-                    rotateLeftTime = 0;
-                    Quaternion quan = new Quaternion().fromAngles(0, 0, 0);
-                    enemyNode.getChild(0).setLocalRotation(quan);
-                    leftRotate = false;
-                }
+        //update from previous abstracontrol
+        if (time - time3 >= stateTime) {
+            stateTime = rn.nextFloat() * 5 + 5;
+            frequency = rn.nextFloat() * 2 + 1;
+            state = rn.nextInt(states.length);
+            binding = states[state];
+            time3 = time;
+        }
+        if (binding.equals("RotateLeft") && !rightRotate) {
+            leftRotate = true;
+        } else if (binding.equals("RotateRight") && !leftRotate) {
+            rightRotate = true;
+        } else if (binding.equals("WalkForward") && !backward) {
+            forward = true;
+        } else if (binding.equals("WalkBackward") && !forward) {
+            backward = true;
+        } else if (binding.equals("Shoot")) {
+            shoot = true;
+        } else if (binding.equals("Stop")) {
+            stop = true;
+        }
+
+        if (leftRotate) {
+            rotateLeftTime += tpf;
+            if (rotateLeftTime > ROTATETIME) {
+                rotateLeftTime = 0;
+                Quaternion quan = new Quaternion().fromAngles(0, 0, 0);
+                enemyNode.getChild(0).setLocalRotation(quan);
+                leftRotate = false;
             }
-            if (rightRotate) {
-                rotateRightTime += tpf;
-                if (rotateRightTime > ROTATETIME) {
-                    rotateRightTime = 0;
-                    Quaternion quan = new Quaternion().fromAngles(0, 0, 0);
-                    enemyNode.getChild(0).setLocalRotation(quan);
-                    rightRotate = false;
-                }
+        }
+        if (rightRotate) {
+            rotateRightTime += tpf;
+            if (rotateRightTime > ROTATETIME) {
+                rotateRightTime = 0;
+                Quaternion quan = new Quaternion().fromAngles(0, 0, 0);
+                enemyNode.getChild(0).setLocalRotation(quan);
+                rightRotate = false;
             }
-            if (forward) {
-                walkForwardTime += tpf;
-                if (walkForwardTime > WALKTIME) {
-                    walkForwardTime = 0;
-                    forward = false;
-                }
+        }
+        if (forward) {
+            walkForwardTime += tpf;
+            if (walkForwardTime > WALKTIME) {
+                walkForwardTime = 0;
+                forward = false;
             }
-            if (backward) {
-                walkBackwardTime += tpf;
-                if (walkBackwardTime > WALKTIME) {
-                    walkBackwardTime = 0;
-                    backward = false;
-                }
+        }
+        if (backward) {
+            walkBackwardTime += tpf;
+            if (walkBackwardTime > WALKTIME) {
+                walkBackwardTime = 0;
+                backward = false;
             }
-            if (force) {
-                forceTime += tpf;
-                if (forceTime > FORCETIME) {
-                    force = false;
-                    forceTime = 0;
-                }
+        }
+        if (force) {
+            forceTime += tpf;
+            if (forceTime > FORCETIME) {
+                force = false;
+                forceTime = 0;
             }
-            if (stop) {
-                stopTime += tpf;
-                if (stopTime > STOPTIME) {
-                    stop = false;
-                    stopTime = 0;
-                }
+        }
+        if (stop) {
+            stopTime += tpf;
+            if (stopTime > STOPTIME) {
+                stop = false;
+                stopTime = 0;
             }
-            if (shoot) {
-                shootTime += tpf;
-                if (shootTime > SHOOTTIME) {
-                    shoot = false;
-                    shootTime = 0;
-                }
+        }
+        if (shoot) {
+            shootTime += tpf;
+            if (shootTime > SHOOTTIME) {
+                shoot = false;
+                shootTime = 0;
             }
         }
     }
-
-  
 }

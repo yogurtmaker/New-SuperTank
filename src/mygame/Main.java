@@ -1,5 +1,5 @@
 package mygame;
- 
+
 import com.jme3.app.SimpleApplication;
 import com.jme3.bounding.BoundingVolume;
 import com.jme3.bullet.BulletAppState;
@@ -24,8 +24,8 @@ import com.jme3.system.AppSettings;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
-public class Main extends SimpleApplication implements ActionListener{
-
+public class Main extends SimpleApplication implements ActionListener {
+    
     BitmapText[] texts;
     static Dimension screen;
     BulletAppState bulletAppState;
@@ -39,37 +39,34 @@ public class Main extends SimpleApplication implements ActionListener{
     Tank tank;
     Enemy[] enemyTank;
     DissolveTank dissolveTank;
-    Vector3f playerBarPos = new Vector3f(820, 550, 0), gameEndPos = new Vector3f(520, 750, 0),
+    Vector3f playerBarPos = new Vector3f(820, 355, 0), gameEndPos = new Vector3f(520, 750, 0),
             numOfBulletRemainPos = new Vector3f(20, 800, 0);
     Material mats[];
     final int ENEMYNUMBER = 4, BULLETDAMAGE = 20;
     boolean rotate = false;
     int enemyRemain = 4;
-      boolean pause = false;
-
+    boolean pause = false;
+    
     public static void main(final String[] args) {
         Main app = new Main();
         initAppScreen(app);
         app.start();
     }
-
+    
     @Override
     public void simpleInitApp() {
-  
-      processor();
+        
+        processor();
         initText();
-          ground = new Ground(this);
-         sky = new Sky(this);
+        ground = new Ground(this);
+        sky = new Sky(this);
         initMat();
         initPhysics();
         createCharacter();
         initCam();
         setUpKeys();
-       
+        
     }
-    
-
-    
     
     private static void initAppScreen(SimpleApplication app) {
         AppSettings aps = new AppSettings(true);
@@ -80,36 +77,40 @@ public class Main extends SimpleApplication implements ActionListener{
         app.setSettings(aps);
         app.setShowSettings(false);
     }
-
+    
     @Override
     public void simpleUpdate(final float tpf) {
-        if(!pause){      
-        texts[3].setText("Bullet remain:" + tank.numberOfBulletRemain);
-        tank.updateTank(tpf, texts[1]);
-        sky.skyUpdate(tpf);
-        for (int i = 0; i < ENEMYNUMBER; i++) {
-            enemyTank[i].updateEnemy(tpf, tank.tankNode.getWorldTranslation());
-        }
-        collisionTest();
-        for (int i = 0; i < ENEMYNUMBER; i++) {
-            for (int j = 0; j < enemyTank[i].bulletList.size(); j++) {
-                if (enemyTank[i].bulletList.get(j).bullet.getWorldTranslation().subtract(tank.tankNode.getWorldTranslation()).length()
+        if (pause) {
+            for (int i = 0; i < ENEMYNUMBER; i++) {
+                enemyTank[i].enemyControl.setWalkDirection(Vector3f.ZERO);
+                tank.tankControl.setWalkDirection(Vector3f.ZERO);
+            }
+        } else {
+            texts[3].setText("Bullet remain:" + tank.numberOfBulletRemain);
+            tank.updateTank(tpf, texts[1]);
+            sky.skyUpdate(tpf);
+            for (int i = 0; i < ENEMYNUMBER; i++) {
+                enemyTank[i].updateEnemy(tpf, tank.tankNode.getWorldTranslation());
+            }
+            collisionTest();
+            for (int i = 0; i < ENEMYNUMBER; i++) {
+                for (int j = 0; j < enemyTank[i].bulletList.size(); j++) {
+                    if (enemyTank[i].bulletList.get(j).bullet.getWorldTranslation().subtract(tank.tankNode.getWorldTranslation()).length()
+                            > 2000) {
+                        rootNode.detachChild(enemyTank[i].bulletList.get(j).bullet);
+                        enemyTank[i].bulletList.remove(enemyTank[i].bulletList.get(j));
+                    }
+                }
+            }
+            for (int j = 0; j < tank.bulletList.size(); j++) {
+                if (tank.bulletList.get(j).bullet.getWorldTranslation().subtract(tank.tankNode.getWorldTranslation()).length()
                         > 2000) {
-                    rootNode.detachChild(enemyTank[i].bulletList.get(j).bullet);
-                    enemyTank[i].bulletList.remove(enemyTank[i].bulletList.get(j));
+                    rootNode.detachChild(tank.bulletList.get(j).bullet);
+                    tank.bulletList.remove(tank.bulletList.get(j));
                 }
             }
         }
-        for (int j = 0; j < tank.bulletList.size(); j++) {
-            if (tank.bulletList.get(j).bullet.getWorldTranslation().subtract(tank.tankNode.getWorldTranslation()).length()
-                    > 2000) {
-                rootNode.detachChild(tank.bulletList.get(j).bullet);
-                tank.bulletList.remove(tank.bulletList.get(j));
-            }
-        }
     }
-    }
-    
     
     public void collisionTest() {
         CollisionResults crs = new CollisionResults();
@@ -223,7 +224,7 @@ public class Main extends SimpleApplication implements ActionListener{
         texts[0].setText("HP:" + (int) tank.hitPoints);
         texts[0].setLocalTranslation(playerBarPos);
     }
-
+    
     public void initText() {
         BitmapFont bmf = assetManager.loadFont("Interface/Fonts/Console.fnt");
         texts = new BitmapText[6];
@@ -237,7 +238,7 @@ public class Main extends SimpleApplication implements ActionListener{
         texts[3].setColor(ColorRGBA.Black);
         texts[3].setLocalTranslation(numOfBulletRemainPos);
     }
-
+    
     private void createCharacter() {
         tank = new Tank(this);
         modelPlayer = tank.tankNode;
@@ -246,12 +247,12 @@ public class Main extends SimpleApplication implements ActionListener{
         createEnemy();
         bulletAppState.getPhysicsSpace().add(player);
     }
-
+    
     private void initPhysics() {
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
     }
-
+    
     private void createEnemy() {
         enemyTank = new EnemyTank[ENEMYNUMBER];
         modelEnemyTank = new Node[ENEMYNUMBER];
@@ -266,13 +267,10 @@ public class Main extends SimpleApplication implements ActionListener{
             rootNode.attachChild(modelEnemyTank[i]);
         }
     }
-
- 
     
     private void setUpKeys() {
         inputManager.addMapping("Start", new KeyTrigger(KeyInput.KEY_R));
         inputManager.addListener(this, "Start");
-        
         inputManager.addMapping("Rotate Left", new KeyTrigger(KeyInput.KEY_LEFT));
         inputManager.addMapping("Rotate Right", new KeyTrigger(KeyInput.KEY_RIGHT));
         inputManager.addMapping("Walk Forward", new KeyTrigger(KeyInput.KEY_UP));
@@ -284,18 +282,16 @@ public class Main extends SimpleApplication implements ActionListener{
         inputManager.addListener(tank, "Shot");
         inputManager.addListener(tank, "Shield");
     }
-
+    
     private void initCam() {
         flyCam.setEnabled(false);
         camNode = new CameraNode("CamNode", cam);
         camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
         camNode.setLocalTranslation(new Vector3f(0, 5, -25));
-       camNode.lookAt(new Vector3f(0, 5, 0), Vector3f.UNIT_Y);
+        camNode.lookAt(new Vector3f(0, 5, 0), Vector3f.UNIT_Y);
         tank.tankNode.attachChild(camNode);
     }
     
-
-
     public void initMat() {
         mats = new Material[4];
         mats[0] = assetManager
@@ -307,7 +303,7 @@ public class Main extends SimpleApplication implements ActionListener{
         mats[3] = assetManager
                 .loadMaterial("Materials/Active/MultiplyColor_3.j3m");
     }
-
+    
     private void processor() {
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         int numSamples = getContext().getSettings().getSamples();
@@ -326,10 +322,10 @@ public class Main extends SimpleApplication implements ActionListener{
         fpp.addFilter(bloom);
         viewPort.addProcessor(fpp);
     }
-
+    
     public void onAction(String name, boolean isPressed, float tpf) {
-        if(name.equals("Start")&&isPressed)
-        {pause=!pause;
+        if (name.equals("Start") && isPressed) {
+            pause = !pause;
         }
     }
 }
