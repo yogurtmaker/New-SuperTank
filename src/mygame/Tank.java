@@ -1,10 +1,13 @@
 package mygame;
 
+import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.font.BitmapText;
+import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -18,8 +21,9 @@ import com.jme3.scene.shape.Box;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Tank implements ActionListener {
+public class Tank {
 
+    SimpleApplication sa;
     Main main;
     Node tankNode, bulletStartNode, walkDirNode;
     CharacterControl tankControl;
@@ -39,6 +43,7 @@ public class Tank implements ActionListener {
     public Tank(Main main) {
         this.main = main;
         initTank();
+        initKeys();
     }
 
     private void initTank() {
@@ -72,60 +77,74 @@ public class Tank implements ActionListener {
         bar.setQueueBucket(RenderQueue.Bucket.Transparent);
         tankNode.attachChild(bar);
     }
-
-    public void onAction(String binding, boolean isPressed, float tpf) {
-        delay = delay - tpf;
-        if (binding.equals("Rotate Left")) {
-            if (isPressed) {
-                resetTime = 70;
-                leftRotate = true;
-            } else {
-                leftRotate = false;
-            }
-        } else if (binding.equals("Rotate Right")) {
-            if (isPressed) {
-                resetTime = 70;
-                rightRotate = true;
-            } else {
-                rightRotate = false;
-            }
-        } else if (binding.equals("Walk Forward")) {
-            if (isPressed) {
-                forward = true;
-                if (time > 15) {
-                    dust.emit.setParticlesPerSec(20);
-                }
-            } else {
-                forward = false;
-                dust.emit.setParticlesPerSec(0);
-            }
-        } else if (binding.equals("Walk Backward")) {
-            if (isPressed) {
-                backward = true;
-            } else {
-                backward = false;
-            }
-        } else if (binding.equals("Shot") && isPressed && delay <= 0) {
-            //delay = 0.5f;
-            if (numberOfBulletRemain > 0) {
-                numberOfBulletRemain--;
-                Bullet bullet = new Bullet(main, bulletStartNode.getWorldTranslation(),
-                        tankNode.getWorldTranslation());
-                bullet.bullet.setLocalRotation(tankNode.getLocalRotation());
-                bulletList.add(bullet);
-                main.getRootNode().attachChild(bullet.bullet);
-            }
-        } else if (binding.equals("Shield")) {
-            if (isPressed) {
-                if (!second) {
-                    force = true;
-                    second = true;
+    private ActionListener actionListener = new ActionListener() {
+        public void onAction(String binding, boolean isPressed, float tpf) {
+            delay = delay - tpf;
+            if (binding.equals("Rotate Left")) {
+                if (isPressed) {
+                    resetTime = 70;
+                    leftRotate = true;
                 } else {
-                    force = false;
-                    second = false;
+                    leftRotate = false;
+                }
+            } else if (binding.equals("Rotate Right")) {
+                if (isPressed) {
+                    resetTime = 70;
+                    rightRotate = true;
+                } else {
+                    rightRotate = false;
+                }
+            } else if (binding.equals("Walk Forward")) {
+                if (isPressed) {
+                    forward = true;
+                    if (time > 15) {
+                        dust.emit.setParticlesPerSec(20);
+                    }
+                } else {
+                    forward = false;
+                    dust.emit.setParticlesPerSec(0);
+                }
+            } else if (binding.equals("Walk Backward")) {
+                if (isPressed) {
+                    backward = true;
+                } else {
+                    backward = false;
+                }
+            } else if (binding.equals("Shot") && isPressed && delay <= 0) {
+                //delay = 0.5f;
+                if (numberOfBulletRemain > 0) {
+                    numberOfBulletRemain--;
+                    Bullet bullet = new Bullet(main, bulletStartNode.getWorldTranslation(),
+                            tankNode.getWorldTranslation());
+                    bullet.bullet.setLocalRotation(tankNode.getLocalRotation());
+                    bulletList.add(bullet);
+                    main.getRootNode().attachChild(bullet.bullet);
+                }
+            } else if (binding.equals("Shield")) {
+                if (isPressed) {
+                    if (!second) {
+                        force = true;
+                        second = true;
+                    } else {
+                        force = false;
+                        second = false;
+                    }
                 }
             }
         }
+    };
+
+    public void initKeys() {
+        main.getInputManager().addMapping("Rotate Left", new KeyTrigger(KeyInput.KEY_LEFT));
+        main.getInputManager().addMapping("Rotate Right", new KeyTrigger(KeyInput.KEY_RIGHT));
+        main.getInputManager().addMapping("Walk Forward", new KeyTrigger(KeyInput.KEY_UP));
+        main.getInputManager().addMapping("Walk Backward", new KeyTrigger(KeyInput.KEY_DOWN));
+        main.getInputManager().addMapping("Shot", new KeyTrigger(KeyInput.KEY_S));
+        main.getInputManager().addMapping("Shield", new KeyTrigger(KeyInput.KEY_T));
+        main.getInputManager().addListener(actionListener, "Rotate Left", "Rotate Right");
+        main.getInputManager().addListener(actionListener, "Walk Forward", "Walk Backward");
+        main.getInputManager().addListener(actionListener, "Shot");
+        main.getInputManager().addListener(actionListener, "Shield");
     }
 
     public void updateTank(float tpf, BitmapText text) {
@@ -144,7 +163,7 @@ public class Tank implements ActionListener {
         viewDirection.set(camDir);
         walkDirection.set(0, 0, 0);
         time = time + tpf;
-        if (time > 1f) {
+        if (time > 15f) {
             tankControl.setGravity(30f);
             if (forward) {
                 walkDirection.addLocal(camDir.mult(5f));

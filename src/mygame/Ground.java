@@ -27,6 +27,7 @@ public class Ground {
     private Main main;
     private Material mat_terrain;
     private TerrainGrid terrain;
+    private Game game;
 
     public Ground(Main main) {
         this.main = main;
