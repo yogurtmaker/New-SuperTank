@@ -79,6 +79,16 @@ public class Game extends AbstractAppState implements ActionListener {
     @Override
     public void update(float tpf) {
         time += tpf;
+        if (enemyRemain == 0) {
+            texts[2].setText("Congratulations! You win the game!");
+            texts[2].setLocalTranslation(gameEndPos);
+        }
+        if (tank.hitPoints <= 0) {
+            System.out.println("123");
+            texts[2].setText("Sorry, you lose!");
+            texts[2].setLocalTranslation(gameEndPos);
+            tank.hitPoints = 0;
+        }
         if (pause) {
             for (int i = 0; i < ENEMYNUMBER; i++) {
                 texts[2].setText("Game is paused");
@@ -94,7 +104,7 @@ public class Game extends AbstractAppState implements ActionListener {
             cheat = false;
         } else {
             texts[2].setLocalTranslation(0, 0, 0);
-            texts[3].setText("Bullet remain:" + tank.numberOfBulletRemain + ". Missile remain:" + tank.numOfMissile);
+            texts[3].setText("Bullets remain:" + tank.numberOfBulletRemain + ". Missiles remain:" + tank.numOfMissile);
             for (int i = 0; i < ENEMYNUMBER; i++) {
                 enemyPos[i] = enemyTank[i].enemyNode.getWorldTranslation();
             }
@@ -111,7 +121,7 @@ public class Game extends AbstractAppState implements ActionListener {
                         enemyRemain++;
                         enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
                         Vector3f playerPos = tank.tankNode.getWorldTranslation();
-                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 200 - 100, playerPos.y, playerPos.z + (float) Math.random() * 200 - 100));
+                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 100 - 50, playerPos.y, playerPos.z + (float) Math.random() * 100 - 50));
                     }
                 } else {
                     texts[i + 4].setLocalTranslation(0, 0, 0);
@@ -171,11 +181,6 @@ public class Game extends AbstractAppState implements ActionListener {
                         new ExplosionEffect(main, tank.tankNode, Vector3f.ZERO);
                         System.out.println("Hit player!");
                         tank.hitPoints -= BULLETDAMAGE;
-                        if (tank.hitPoints <= 0) {
-                            texts[2].setText("Sorry, you lose!");
-                            texts[2].setLocalTranslation(gameEndPos);
-                            tank.hitPoints = 0;
-                        }
                         if (tank.hitPoints < 100) {
                             tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
                         }
@@ -306,10 +311,6 @@ public class Game extends AbstractAppState implements ActionListener {
                         enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x
                                 + 1000, tank.tankNode.getWorldTranslation().y + 1000, tank.tankNode.getWorldTranslation().z + 1000);
                         enemyTank[i].hitPoints = 0;
-                        if (enemyRemain == 0) {
-                            texts[2].setText("Congratulations! You win the game!");
-                            texts[2].setLocalTranslation(gameEndPos);
-                        }
                     }
                     enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
                     main.getRootNode().detachChild(tank.bulletList.get(j).bullet);
@@ -391,7 +392,6 @@ public class Game extends AbstractAppState implements ActionListener {
         texts[1].setColor(ColorRGBA.Blue);
         texts[3].setColor(ColorRGBA.Black);
         texts[3].setLocalTranslation(numOfBulletRemainPos);
-        int i = 0;
         texts[4].setColor(ColorRGBA.Black);
         texts[5].setColor(ColorRGBA.Black);
         texts[6].setColor(ColorRGBA.Black);

@@ -51,9 +51,9 @@ public class EnemyTank extends Enemy {
         enemyNode.attachChild(bar);
 
         rn = new Random();
-        stateTime = rn.nextFloat() * 5 + 5;
+        stateTime = rn.nextFloat() * 2 + 2;
         //System.out.println(stateTime);
-        frequency = rn.nextFloat() * 2 + 1;
+        frequency = rn.nextFloat() + 1;
         //System.out.println(frequency);
         dust = new Dust(main);
         dust.emit.setParticlesPerSec(20f);
@@ -143,17 +143,18 @@ public class EnemyTank extends Enemy {
 
     @Override
     protected void adjust(Vector3f playerPos, int i) {
+        float revise = 350;
         if (i == 0) {
-            enemyControl.warp(new Vector3f(playerPos.x + 350, 200, playerPos.z + 350));
+            enemyControl.warp(new Vector3f(playerPos.x + revise, 160f, playerPos.z + revise));
         }
         if (i == 1) {
-            enemyControl.warp(new Vector3f(playerPos.x - 350, 200, playerPos.z + 350));
+            enemyControl.warp(new Vector3f(playerPos.x - revise, 160f, playerPos.z + revise));
         }
         if (i == 2) {
-            enemyControl.warp(new Vector3f(playerPos.x + 350, 200, playerPos.z - 350));
+            enemyControl.warp(new Vector3f(playerPos.x + revise, 160f, playerPos.z - revise));
         }
         if (i == 3) {
-            enemyControl.warp(new Vector3f(playerPos.x - 350, 200, playerPos.z - 350));
+            enemyControl.warp(new Vector3f(playerPos.x - revise, 160f, playerPos.z - revise));
         }
     }
 
@@ -197,7 +198,7 @@ public class EnemyTank extends Enemy {
         velocity = bulletPosition.subtract(tankPostion)
                 .subtract(new Vector3f(0, 3, 0)).mult(1.01f);
         if (!death) {
-            if (time > 14) {
+            if (time > 15) {
                 if ((int) time % LEVELUPTIME == 1) {
                     if (!second) {
                         level += 0.3;
@@ -258,8 +259,8 @@ public class EnemyTank extends Enemy {
 
         //update from previous abstracontrol
         if (time - time3 >= stateTime) {
-            stateTime = rn.nextFloat() * 5 + 5;
-            frequency = rn.nextFloat() * 2 + 1;
+            stateTime = rn.nextFloat() * 2 + 2;
+            frequency = rn.nextFloat() + 1;
             state = rn.nextInt(states.length);
             binding = states[state];
             time3 = time;
