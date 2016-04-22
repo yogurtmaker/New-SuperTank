@@ -27,10 +27,6 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author alien
- */
 public class Game extends AbstractAppState implements ActionListener {
 
     BitmapText[] texts;
@@ -39,21 +35,25 @@ public class Game extends AbstractAppState implements ActionListener {
     private Node[] modelEnemyTank;
     private CharacterControl player;
     private CharacterControl[] controlEnemyTank;
-    Vector3f[] enemyPos = new Vector3f[ENEMYNUMBER];
+    Vector3f[] enemyPos = new Vector3f[ENEMYNUMBER], enemyDiePos = new Vector3f[ENEMYNUMBER],
+            respawnPos = new Vector3f[ENEMYNUMBER];
     Main main;
     CameraNode camNode;
     Ground ground;
     Tank tank;
+    boolean[] dieStatus = new boolean[ENEMYNUMBER];
     Enemy[] enemyTank;
     DissolveTank dissolveTank;
     Vector3f playerBarPos = new Vector3f(820, 355, 0), gameEndPos = new Vector3f(520, 750, 0),
             numOfBulletRemainPos = new Vector3f(20, 800, 0);
     Material mats[];
-    public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20;
+    public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20, RESPAWNTIME = 5;
     boolean rotate = false;
     int enemyRemain = 4;
     boolean pause = false, isDemo;
     List<Powerup> powerupList;
+    float[] dieTime = new float[ENEMYNUMBER];
+    float time = 0;
 
     protected Game(boolean iDemoMode) {
         isDemo = iDemoMode;
@@ -61,17 +61,21 @@ public class Game extends AbstractAppState implements ActionListener {
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
+        for (int i = 0; i < ENEMYNUMBER; i++) {
+            dieStatus[i] = false;
+            respawnPos[i] = new Vector3f(20, numOfBulletRemainPos.y - (i + 1) * 20, 0);
+        }
         main = (Main) app;
         processor();
         initText();
         initMat();
         createCharacter();
         initCam();
-
     }
 
     @Override
     public void update(float tpf) {
+        time += tpf;
         if (pause) {
             for (int i = 0; i < ENEMYNUMBER; i++) {
                 enemyTank[i].enemyControl.setWalkDirection(Vector3f.ZERO);
@@ -84,7 +88,23 @@ public class Game extends AbstractAppState implements ActionListener {
             }
             tank.updateTank(tpf, texts[1], tank.tankNode.getWorldTranslation(), enemyPos);
             for (int i = 0; i < ENEMYNUMBER; i++) {
-                enemyTank[i].updateEnemy(tpf, tank.tankNode.getWorldTranslation());
+                if (dieStatus[i] == true) {
+                    String t = String.format("Enemy %d is respawning in %.1f seconds!", i + 1, (RESPAWNTIME - time + dieTime[i]));
+                    texts[i + 4].setText(t);
+                    texts[i + 4].setLocalTranslation(respawnPos[i]);
+                    if ((time - dieTime[i]) > RESPAWNTIME) {
+                        main.getRootNode().attachChild(enemyTank[i].enemyNode);
+                        enemyTank[i].hitPoints = 100;
+                        dieStatus[i] = false;
+                        enemyRemain++;
+                        enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
+                        Vector3f playerPos = tank.tankNode.getWorldTranslation();
+                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 200 - 100, playerPos.y, playerPos.z + (float) Math.random() * 200 - 100));
+                    }
+                } else {
+                    texts[i + 4].setLocalTranslation(0, 0, 0);
+                    enemyTank[i].updateEnemy(tpf, tank.tankNode.getWorldTranslation(), enemyRemain);
+                }
             }
             collisionTest();
             for (int i = 0; i < ENEMYNUMBER; i++) {
@@ -101,6 +121,13 @@ public class Game extends AbstractAppState implements ActionListener {
                         > 2000) {
                     main.getRootNode().detachChild(tank.bulletList.get(j).bullet);
                     tank.bulletList.remove(tank.bulletList.get(j));
+                }
+            }
+            for (int j = 0; j < tank.missileList.size(); j++) {
+                if (tank.missileList.get(j).bullet.getWorldTranslation().subtract(tank.tankNode.getWorldTranslation()).length()
+                        > 2000) {
+                    main.getRootNode().detachChild(tank.missileList.get(j).bullet);
+                    tank.missileList.remove(tank.missileList.get(j));
                 }
             }
         }
@@ -222,6 +249,8 @@ public class Game extends AbstractAppState implements ActionListener {
                 }
             }
         }
+
+
         for (int i = 0; i < ENEMYNUMBER; i++) {
             for (int j = 0; j < tank.bulletList.size(); j++) {
                 BoundingVolume bv = tank.bulletList.get(j).bullet.getWorldBound();
@@ -234,6 +263,10 @@ public class Game extends AbstractAppState implements ActionListener {
                     enemyTank[i].hitPoints -= BULLETDAMAGE;
                     if (enemyTank[i].hitPoints <= 0) {
                         enemyRemain--;
+                        for (Bullet bullet : enemyTank[i].bulletList) {
+                            bullet.bullet.setLocalTranslation(-2000, -2000, -2000);
+                            main.getRootNode().detachChild(bullet.bullet);
+                        }
 //                        dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
 //                        enemyTank[i].enemyNode.addControl(dissolveTank);
                         main.getRootNode().detachChild(enemyTank[i].enemyNode);
@@ -248,7 +281,11 @@ public class Game extends AbstractAppState implements ActionListener {
                             Powerup defense = new Defense(main);
                             addPowerup(defense, i);
                         }
-                        enemyTank[i].enemyNode.setLocalTranslation(-100, -100, -100);
+                        enemyDiePos[i] = enemyTank[i].enemyNode.getWorldTranslation();
+                        dieStatus[i] = true;
+                        dieTime[i] = time;
+                        enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x
+                                + 1000, tank.tankNode.getWorldTranslation().y + 1000, tank.tankNode.getWorldTranslation().z + 1000);
                         enemyTank[i].hitPoints = 0;
                         if (enemyRemain == 0) {
                             texts[2].setText("Congratulations! You win the game!");
@@ -258,6 +295,55 @@ public class Game extends AbstractAppState implements ActionListener {
                     enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
                     main.getRootNode().detachChild(tank.bulletList.get(j).bullet);
                     tank.bulletList.remove(tank.bulletList.get(j));
+                    crs.clear();
+                }
+            }
+        }
+
+        for (int i = 0; i < ENEMYNUMBER; i++) {
+            for (int j = 0; j < tank.missileList.size(); j++) {
+                BoundingVolume bv = tank.missileList.get(j).bullet.getWorldBound();
+                enemyTank[i].enemyNode.getChild(0).collideWith(bv, crs);
+                if (crs.size() > 0) {
+//                    dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
+//                    enemyTank[i].enemyNode.addControl(dissolveTank);
+                    new ExplosionEffect(main, enemyTank[i].enemyNode, Vector3f.ZERO);
+                    System.out.println("Hit enemy!");
+                    enemyTank[i].hitPoints -= BULLETDAMAGE;
+                    if (enemyTank[i].hitPoints <= 0) {
+                        enemyRemain--;
+                        for (Bullet bullet : enemyTank[i].bulletList) {
+                            bullet.bullet.setLocalTranslation(-2000, -2000, -2000);
+                            main.getRootNode().detachChild(bullet.bullet);
+                        }
+//                        dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
+//                        enemyTank[i].enemyNode.addControl(dissolveTank);
+                        main.getRootNode().detachChild(enemyTank[i].enemyNode);
+                        float rand = FastMath.nextRandomFloat();
+                        if (0.5 > rand) {
+                            Powerup health = new Health(main);
+                            addPowerup(health, i);
+                        } else if (0.9 > rand) {
+                            Powerup energy = new Battery(main);
+                            addPowerup(energy, i);
+                        } else {
+                            Powerup defense = new Defense(main);
+                            addPowerup(defense, i);
+                        }
+                        enemyDiePos[i] = enemyTank[i].enemyNode.getWorldTranslation();
+                        dieStatus[i] = true;
+                        dieTime[i] = time;
+                        enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x
+                                + 1000, tank.tankNode.getWorldTranslation().y + 1000, tank.tankNode.getWorldTranslation().z + 1000);
+                        enemyTank[i].hitPoints = 0;
+                        if (enemyRemain == 0) {
+                            texts[2].setText("Congratulations! You win the game!");
+                            texts[2].setLocalTranslation(gameEndPos);
+                        }
+                    }
+                    enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
+                    //main.getRootNode().detachChild(tank.bulletList.get(j).bullet);
+                    //tank.bulletList.remove(tank.bulletList.get(j));
                     crs.clear();
                 }
             }
@@ -274,8 +360,8 @@ public class Game extends AbstractAppState implements ActionListener {
 
     public void initText() {
         BitmapFont bmf = main.getAssetManager().loadFont("Interface/Fonts/Console.fnt");
-        texts = new BitmapText[6];
-        for (int j = 0; j < 6; j++) {
+        texts = new BitmapText[8];
+        for (int j = 0; j < 8; j++) {
             texts[j] = new BitmapText(bmf);
             texts[j].setSize(bmf.getCharSet().getRenderedSize() * 2);
             texts[j].setColor(ColorRGBA.Red);
@@ -284,6 +370,11 @@ public class Game extends AbstractAppState implements ActionListener {
         texts[1].setColor(ColorRGBA.Blue);
         texts[3].setColor(ColorRGBA.Black);
         texts[3].setLocalTranslation(numOfBulletRemainPos);
+        int i = 0;
+        texts[4].setColor(ColorRGBA.Black);
+        texts[5].setColor(ColorRGBA.Black);
+        texts[6].setColor(ColorRGBA.Black);
+        texts[7].setColor(ColorRGBA.Black);
     }
 
     private void createCharacter() {
@@ -300,10 +391,6 @@ public class Game extends AbstractAppState implements ActionListener {
         powerupList.add(powerup);
         powerup.setLocalTranslation(enemyTank[i].enemyNode.getWorldTranslation());
         main.getRootNode().attachChild(powerup);
-//        
-//        RigidBodyControl phyPowerUp = new RigidBodyControl(0);
-//      powerup.geomBoundingBox.addControl(phyPowerUp);
-//        bulletAppState.getPhysicsSpace().add(powerup);
 
     }
 

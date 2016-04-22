@@ -82,5 +82,5 @@ public abstract class Enemy {
 
     protected abstract void adjust(Vector3f palyerPos);
 
-    protected abstract void updateEnemy(float tpf, Vector3f playerPos);
+    protected abstract void updateEnemy(float tpf, Vector3f playerPos, int enemyRemain);
 }

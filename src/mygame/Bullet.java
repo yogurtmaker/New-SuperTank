@@ -18,7 +18,7 @@ public class Bullet {
         this.position = bulletWorldTranslation;
         this.tankWorldTranslation = tankWorldTranslation;
         velocity = position.subtract(tankWorldTranslation)
-                .subtract(new Vector3f(0, 2f, 0)).mult(2.01f);
+                .subtract(new Vector3f(0, 2f, 0)).mult(1.2f);
         initBullet();
     }
 

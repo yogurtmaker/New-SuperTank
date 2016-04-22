@@ -29,15 +29,16 @@ public class Tank {
     Node tankNode, bulletStartNode, walkDirNode, axis;
     CharacterControl tankControl;
     List<Bullet> bulletList;
+    List<Missile> missileList;
     Shield shield;
     Dust dust;
-    Geometry bar, map, playerDot, direction;
+    Geometry bar, mapGeo, playerDot, direction;
     Node mapPlayer = new Node();
     Geometry[] enemyDots = new Geometry[Game.ENEMYNUMBER];
     Vector3f walkDirection = new Vector3f(0, 0, 0), viewDirection = new Vector3f(0, 0, 0),
-            mapPos = new Vector3f(-12, 9.3f, 0);
+            mapPos = new Vector3f(-15.3f, 12.3f, 0);
     boolean force = false, second = false, forward = false, backward = false,
-            leftRotate = false, rightRotate = false;
+            leftRotate = false, rightRotate = false, map = false, mSecond = false;
     private float airTime = 0;
     private int resetTime;
     public float time = 0, delay = 0, hitPoints = 100;
@@ -52,6 +53,7 @@ public class Tank {
 
     private void initTank() {
         bulletList = new ArrayList<Bullet>();
+        missileList = new ArrayList<Missile>();
         SphereCollisionShape sphere = new SphereCollisionShape(5f);
         tankControl = new CharacterControl(sphere, 0.01f);
         tankControl.setFallSpeed(15f);
@@ -80,13 +82,23 @@ public class Tank {
         bar.setLocalTranslation(0, 3.3f, 2);
         bar.setQueueBucket(RenderQueue.Bucket.Transparent);
         tankNode.attachChild(bar);
-
         makeMap();
 
     }
     private ActionListener actionListener = new ActionListener() {
         public void onAction(String binding, boolean isPressed, float tpf) {
             delay = delay - tpf;
+            if (binding.equals("Map")) {
+                if (isPressed) {
+                    if (!mSecond) {
+                        map = true;
+                        mSecond = true;
+                    } else {
+                        map = false;
+                        mSecond = false;
+                    }
+                }
+            }
             if (binding.equals("Rotate Left")) {
                 if (isPressed) {
                     resetTime = 70;
@@ -137,6 +149,12 @@ public class Tank {
                         second = false;
                     }
                 }
+            } else if (binding.equals("Missile") && isPressed && delay <= 0) {
+                Missile missile = new Missile(main, bulletStartNode.getWorldTranslation(),
+                        tankNode.getWorldTranslation());
+                missile.bullet.setLocalRotation(tankNode.getLocalRotation());
+                missileList.add(missile);
+                main.getRootNode().attachChild(missile.bullet);
             }
         }
     };
@@ -147,28 +165,31 @@ public class Tank {
         main.getInputManager().addMapping("Walk Forward", new KeyTrigger(KeyInput.KEY_UP));
         main.getInputManager().addMapping("Walk Backward", new KeyTrigger(KeyInput.KEY_DOWN));
         main.getInputManager().addMapping("Shot", new KeyTrigger(KeyInput.KEY_S));
+        main.getInputManager().addMapping("Map", new KeyTrigger(KeyInput.KEY_M));
         main.getInputManager().addMapping("Shield", new KeyTrigger(KeyInput.KEY_T));
+        main.getInputManager().addMapping("Missile", new KeyTrigger(KeyInput.KEY_D));
         main.getInputManager().addListener(actionListener, "Rotate Left", "Rotate Right");
         main.getInputManager().addListener(actionListener, "Walk Forward", "Walk Backward");
         main.getInputManager().addListener(actionListener, "Shot");
         main.getInputManager().addListener(actionListener, "Shield");
+        main.getInputManager().addListener(actionListener, "Map");
+        main.getInputManager().addListener(actionListener, "Missile");
     }
 
     protected void makeMap() {
-        Box box1 = new Box(5.5f, 5.5f, 0.3f);
-        map = new Geometry("bar", box1);
+        Box box1 = new Box(2.8f, 2.8f, 0.3f);
+        mapGeo = new Geometry("bar", box1);
         Material matMap = new Material(main.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        matMap.setColor("Color", new ColorRGBA(0.4f, 0.1f, 0f, 0.2f));
+        matMap.setColor("Color", new ColorRGBA(0.0f, 0.0f, 0.8f, 0.2f));
         matMap.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        map.setMaterial(matMap);
-        map.setQueueBucket(RenderQueue.Bucket.Transparent);
+        mapGeo.setMaterial(matMap);
+        mapGeo.setQueueBucket(RenderQueue.Bucket.Transparent);
         axis = new Node();
         axis.setLocalTranslation(mapPos);
-        tankNode.attachChild(axis);
-        axis.attachChild(map);
+        axis.attachChild(mapGeo);
         axis.attachChild(mapPlayer);
 
-        Sphere dot = new Sphere(100, 100, 0.25f);
+        Sphere dot = new Sphere(100, 100, 0.08f);
         playerDot = new Geometry("playerDot", dot);
         Material matDot = new Material(main.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         matDot.setColor("Color", new ColorRGBA(0f, 0.99f, 0f, 0.6f));
@@ -182,7 +203,7 @@ public class Tank {
         direction.setMaterial(matDot);
         direction.setQueueBucket(RenderQueue.Bucket.Transparent);
         direction.setLocalTranslation(0, 0.3f, 0);
-        mapPlayer.attachChild(direction);
+        //mapPlayer.attachChild(direction);
 
         for (int i = 0; i < Game.ENEMYNUMBER; i++) {
             enemyDots[i] = new Geometry("enemyDots", dot);
@@ -197,16 +218,30 @@ public class Tank {
     }
 
     protected void updateMap(Vector3f playerPos, Vector3f[] enemyPos) {
-        float revise = 80f;
+        float revise = 160f;
+        float x, y;
+
         for (int i = 0; i < Game.ENEMYNUMBER; i++) {
-            //System.out.println((enemyPos[i].x - playerPos.x)/revise + "    " + (enemyPos[i].z - playerPos.z)/revise);
-            enemyDots[i].setLocalTranslation((enemyPos[i].x - playerPos.x) / revise, (enemyPos[i].z - playerPos.z) / revise, 0);
+            //System.out.println(playerPos.subtract(enemyPos[i]).length());
+            //System.out.println((enemyPos[i].x - playerPos.x)/revise + "    " + (enemyPos[i].z - playerPos.z)/revise);        
+            x = (enemyPos[i].x - playerPos.x) / revise;
+            y = (enemyPos[i].z - playerPos.z) / revise;
+            if (x > 2.9 || x < -2.9 || y < -2.86 || y > 2.86) {
+                axis.detachChild(enemyDots[i]);
+            } else {
+                axis.attachChild(enemyDots[i]);
+            }
+            //System.out.println(x + "   " + y);
+            enemyDots[i].setLocalTranslation(x, y, 0);
         }
     }
 
     public void updateTank(float tpf, BitmapText text, Vector3f playerPos, Vector3f[] enemyPos) {
         for (Bullet bullet : bulletList) {
             bullet.update(tpf);
+        }
+        for (Missile missile : missileList) {
+            missile.update(tpf);
         }
         updateMap(playerPos, enemyPos);
         Vector3f camDir = main.getCamera().getDirection().mult(0.2f);
@@ -221,19 +256,20 @@ public class Tank {
         viewDirection.set(camDir);
         walkDirection.set(0, 0, 0);
         time = time + tpf;
+        float revise = 4.5f;
         if (time > 10f) {
             tankControl.setGravity(30f);
             if (forward) {
                 walkDirection.addLocal(camDir.mult(5f));
                 if (leftRotate) {
                     viewDirection.addLocal(camLeft.mult(0.0275f));
-                    mapPlayer.rotate(0,0,-tpf);
+                    mapPlayer.rotate(0, 0, -tpf * revise);
                     if (tankNode.getChild(0).getLocalRotation().getZ() >= limLeft.getZ()) {
                         tankNode.getChild(0).rotate(rotLeft);
                     }
                 } else if (rightRotate) {
                     viewDirection.addLocal(camLeft.mult(0.0275f).negate());
-                    mapPlayer.rotate(0,0,tpf);
+                    mapPlayer.rotate(0, 0, tpf * revise);
                     if (tankNode.getChild(0).getLocalRotation().getZ() <= limRight.getZ()) {
                         tankNode.getChild(0).rotate(rotRight);
                     }
@@ -290,6 +326,12 @@ public class Tank {
                 tankNode.detachChild(shield.nodeshield);
                 text.setLocalTranslation(0, 0, 0);
             }
+            if (map) {
+                tankNode.attachChild(axis);
+            } else {
+                tankNode.detachChild(axis);
+            }
+
             tankControl.setWalkDirection(walkDirection);
             tankControl.setViewDirection(viewDirection);
             if (airTime > 5f) {
