@@ -18,13 +18,12 @@ public class Missile {
         this.position = bulletWorldTranslation;
         this.tankWorldTranslation = tankWorldTranslation;
         velocity = position.subtract(tankWorldTranslation)
-                .subtract(new Vector3f(0, 2f, 0)).mult(2.01f);
+                .subtract(new Vector3f(0, 2f, 0)).mult(1.5f);
         initBullet();
     }
 
     private void initBullet() {
-        bullet = sa.getAssetManager().loadModel("Models/Missile/delta2.mesh.j3o");
-        //bullet.setLocalScale(5);
+        bullet = sa.getAssetManager().loadModel("Models/Missile/AAM.mesh.j3o"); 
     }
 
     public void update(float tpf) {

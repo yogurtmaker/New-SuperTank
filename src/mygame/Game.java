@@ -402,7 +402,7 @@ public class Game extends AbstractAppState implements ActionListener {
             enemyTank[i] = new EnemyTank(main, mats[i]);
             modelEnemyTank[i] = new Node();
             modelEnemyTank[i] = enemyTank[i].enemyNode;
-            enemyTank[i].adjust(tank.tankNode.getWorldTranslation());
+            enemyTank[i].adjust(tank.tankNode.getWorldTranslation(), i);
             controlEnemyTank[i] = enemyTank[i].enemyControl;
             main.bulletAppState.getPhysicsSpace().add(controlEnemyTank[i]);
             main.getRootNode().attachChild(modelEnemyTank[i]);

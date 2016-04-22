@@ -21,17 +21,17 @@ public class EnemyTank extends Enemy {
     String binding = states[5];
     Vector3f bulletPosition, velocity, tankPostion, playerDirection, leftDirection,
             rightDirection, view = new Vector3f(0, 0, 0), escapePos;
-    public boolean walk = false, attached = false, detached = false, bulletCreated = false, track = false, escape = false;
+    public boolean walk = false, attached = false, detached = false, bulletCreated = false, track = false, escape = false, second = false;
     float stateTime, frequency, resetTime, time = 0, delay = 0, time2 = 0, time3 = 0;
     final int ROTATETIME = 5, WALKTIME = 5, FORCETIME = 3, SHOOTTIME = 10, TRACKDISTANCE = 450, ATTACKDISTANCE = 200,
-            STOPTIME = 3;
+            STOPTIME = 3, LEVELUPTIME = 60;
     float rotateLeftTime = 0;
     float rotateRightTime = 0;
     float walkForwardTime = 0;
     float walkBackwardTime = 0;
     float forceTime = 0;
-    float shootTime = 0;
-    float stopTime = 0;
+    float shootTime = 0, level = 1;
+    float stopTime = 0, levelTime = 0;
     int state;
 
     public EnemyTank(Main main, Material mat) {
@@ -82,7 +82,7 @@ public class EnemyTank extends Enemy {
         } else {
             rotateBack(rotLeft, rotRight, rotReset);
         }
-        enemyControl.setWalkDirection(velocity.mult(0.3f));
+        enemyControl.setWalkDirection(velocity.mult(0.3f * level));
     }
 
     protected void aimPlayer(Quaternion rotLeft, Quaternion rotRight, Quaternion limLeft, Quaternion limRight, Quaternion rotReset) {
@@ -106,7 +106,7 @@ public class EnemyTank extends Enemy {
         } else {
             rotateBack(rotLeft, rotRight, rotReset);
         }
-        enemyControl.setWalkDirection(velocity.mult(0.2f));
+        enemyControl.setWalkDirection(velocity.mult(0.2f * level));
     }
 
     protected void rotateBack(Quaternion rotLeft, Quaternion rotRight, Quaternion rotReset) {
@@ -142,8 +142,19 @@ public class EnemyTank extends Enemy {
     }
 
     @Override
-    protected void adjust(Vector3f playerPos) {
-        enemyControl.warp(new Vector3f(playerPos.x + (float) Math.random() * 200 - 100, 200, playerPos.z + (float) Math.random() * 200 - 100));
+    protected void adjust(Vector3f playerPos, int i) {
+        if (i == 0) {
+            enemyControl.warp(new Vector3f(playerPos.x + 350, 200, playerPos.z + 350));
+        }
+        if (i == 1) {
+            enemyControl.warp(new Vector3f(playerPos.x - 350, 200, playerPos.z + 350));
+        }
+        if (i == 2) {
+            enemyControl.warp(new Vector3f(playerPos.x + 350, 200, playerPos.z - 350));
+        }
+        if (i == 3) {
+            enemyControl.warp(new Vector3f(playerPos.x - 350, 200, playerPos.z - 350));
+        }
     }
 
     @Override
@@ -187,6 +198,14 @@ public class EnemyTank extends Enemy {
                 .subtract(new Vector3f(0, 3, 0)).mult(1.01f);
         if (!death) {
             if (time > 14) {
+                if ((int) time % LEVELUPTIME == 1) {
+                    if (!second) {
+                        level += 0.3;
+                        second = true;
+                    }
+                } else {
+                    second = false;
+                }
                 enemyControl.setGravity(20f);
                 if (collideWithPlayer || collideWithEnemy) {
                     enemyControl.setWalkDirection(velocity.mult(0.3f).negate());
@@ -206,10 +225,10 @@ public class EnemyTank extends Enemy {
                     aimPlayer(rotLeft, rotRight, limLeft, limRight, rotReset);
                 } else if (forward) {
                     dust.emit.setParticlesPerSec(20);
-                    enemyControl.setWalkDirection(velocity.mult(0.2f));
+                    enemyControl.setWalkDirection(velocity.mult(0.2f * level));
                     move(rotLeft, rotRight, limLeft, limRight, rotReset);
                 } else if (backward) {
-                    enemyControl.setWalkDirection(velocity.mult(0.2f).negate());
+                    enemyControl.setWalkDirection(velocity.mult(0.2f * level).negate());
                     move(rotLeft, rotRight, limLeft, limRight, rotReset);
                 } else if (stop) {
                     enemyControl.setWalkDirection(Vector3f.ZERO);

@@ -80,7 +80,7 @@ public abstract class Enemy {
         enemyNode.attachChild(dust.emit);
     }
 
-    protected abstract void adjust(Vector3f palyerPos);
+    protected abstract void adjust(Vector3f palyerPos, int i);
 
     protected abstract void updateEnemy(float tpf, Vector3f playerPos, int enemyRemain);
 }
