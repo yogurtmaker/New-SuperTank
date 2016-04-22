@@ -25,7 +25,7 @@ public abstract class Enemy {
     Vector3f walkDirection = new Vector3f(0, 0, 0), viewDirection = new Vector3f(0, 0, 0);
     boolean force = false, second = false, forward = false, backward = false,
             leftRotate = false, rightRotate = false, attack = false, shoot = false, 
-            death = false, stop = false, collideWithPlayer = false, collideWithEnemy = false;
+            death = false, stop = false, collideWithPlayer = false, collideWithEnemy = false, hit = false;
     protected float airTime = 0, hitPoints = 100;
 
     public Enemy(Main main, String enemyType, Material mat) {

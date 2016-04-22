@@ -1,12 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package mygame;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
+import com.jme3.audio.AudioNode;
+import com.jme3.audio.AudioSource;
 import com.jme3.bounding.BoundingVolume;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResults;
@@ -28,6 +26,9 @@ import com.jme3.scene.control.CameraControl;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
+import static mygame.Game.BULLETDAMAGE;
+import static mygame.Game.ENEMYNUMBER;
+import static mygame.Game.RESPAWNTIME;
 
 public class Game extends AbstractAppState implements ActionListener {
 
@@ -37,6 +38,7 @@ public class Game extends AbstractAppState implements ActionListener {
     private Node[] modelEnemyTank;
     private CharacterControl player;
     private CharacterControl[] controlEnemyTank;
+    private AudioNode audio_nature, audio_hit1, audio_hit2, audio_hit3, audio_hit4;
     Vector3f[] enemyPos = new Vector3f[ENEMYNUMBER], enemyDiePos = new Vector3f[ENEMYNUMBER],
             respawnPos = new Vector3f[ENEMYNUMBER];
     Main main;
@@ -52,6 +54,7 @@ public class Game extends AbstractAppState implements ActionListener {
     public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20, RESPAWNTIME = 20;
     boolean rotate = false;
     int enemyRemain = 4;
+    int music = 1;
     boolean pause = false, isDemo, cheat = false;
     List<Powerup> powerupList;
     float[] dieTime = new float[ENEMYNUMBER];
@@ -73,21 +76,24 @@ public class Game extends AbstractAppState implements ActionListener {
         initMat();
         createCharacter();
         initCam();
+        initAudio();
+        initBGM1();
         initKeys();
     }
 
     @Override
     public void update(float tpf) {
-        time += tpf;
         if (enemyRemain == 0) {
-            texts[2].setText("Congratulations! You win the game!");
-            texts[2].setLocalTranslation(gameEndPos);
-        }
-        if (tank.hitPoints <= 0) {
-            System.out.println("123");
-            texts[2].setText("Sorry, you lose!");
-            texts[2].setLocalTranslation(gameEndPos);
+            cleanAll();
+            EndScreen es = new EndScreen(main, (int) time);
+            main.getStateManager().detach(this);
+            main.getStateManager().attach(es);
+        } else if (tank.hitPoints <= 0) {
             tank.hitPoints = 0;
+            cleanAll();
+            EndScreen es = new EndScreen(main, -1);
+            main.getStateManager().detach(this);
+            main.getStateManager().attach(es);
         }
         if (pause) {
             for (int i = 0; i < ENEMYNUMBER; i++) {
@@ -97,12 +103,14 @@ public class Game extends AbstractAppState implements ActionListener {
                 tank.tankControl.setWalkDirection(Vector3f.ZERO);
             }
         } else if (cheat) {
+            time += tpf;
             tank.hitPoints = 1000;
             tank.bar.setLocalScale(1, 1, 1);
             tank.numberOfBulletRemain = 1000;
             tank.numOfMissile = 300;
             cheat = false;
         } else {
+            time += tpf;
             texts[2].setLocalTranslation(0, 0, 0);
             texts[3].setText("Bullets remain:" + tank.numberOfBulletRemain + ". Missiles remain:" + tank.numOfMissile);
             for (int i = 0; i < ENEMYNUMBER; i++) {
@@ -121,7 +129,7 @@ public class Game extends AbstractAppState implements ActionListener {
                         enemyRemain++;
                         enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
                         Vector3f playerPos = tank.tankNode.getWorldTranslation();
-                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 100 - 50, playerPos.y, playerPos.z + (float) Math.random() * 100 - 50));
+                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 50 - 25, 160, playerPos.z + (float) Math.random() * 50 - 25));
                     }
                 } else {
                     texts[i + 4].setLocalTranslation(0, 0, 0);
@@ -153,6 +161,19 @@ public class Game extends AbstractAppState implements ActionListener {
                 }
             }
         }
+        if (audio_nature.getStatus() == AudioSource.Status.Stopped && music == 1) {
+            main.getRootNode().detachChild(audio_nature);
+            initBGM2();
+            music = 2;
+        } else if (audio_nature.getStatus() == AudioSource.Status.Stopped && music == 2) {
+            main.getRootNode().detachChild(audio_nature);
+            initBGM3();
+            music = 3;
+        } else if (audio_nature.getStatus() == AudioSource.Status.Stopped && music == 3) {
+            main.getRootNode().detachChild(audio_nature);
+            initBGM1();
+            music = 1;
+        }
     }
 
     public void collisionTest() {
@@ -179,6 +200,18 @@ public class Game extends AbstractAppState implements ActionListener {
                     tank.tankNode.getChild(0).collideWith(bv, crs);
                     if (crs.size() > 0) {
                         new ExplosionEffect(main, tank.tankNode, Vector3f.ZERO);
+                        if (!isDemo) {
+                            float rand = FastMath.nextRandomFloat();
+                            if (0.25 > rand) {
+                                audio_hit1.playInstance();
+                            } else if (0.5 > rand) {
+                                audio_hit2.playInstance();
+                            } else if (0.75 > rand) {
+                                audio_hit3.playInstance();
+                            } else {
+                                audio_hit4.playInstance();
+                            }
+                        }
                         System.out.println("Hit player!");
                         tank.hitPoints -= BULLETDAMAGE;
                         if (tank.hitPoints < 100) {
@@ -225,6 +258,7 @@ public class Game extends AbstractAppState implements ActionListener {
                             if (tank.hitPoints < 100) {
                                 tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
                             }
+                            break;
                         case 2:
                             tank.numberOfBulletRemain += 100;
                             tank.numOfMissile++;
@@ -283,6 +317,18 @@ public class Game extends AbstractAppState implements ActionListener {
 //                    dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
 //                    enemyTank[i].enemyNode.addControl(dissolveTank);
                     new ExplosionEffect(main, enemyTank[i].enemyNode, Vector3f.ZERO);
+                    if (!isDemo) {
+                        float rand2 = FastMath.nextRandomFloat();
+                        if (0.25 > rand2) {
+                            audio_hit1.playInstance();
+                        } else if (0.5 > rand2) {
+                            audio_hit2.playInstance();
+                        } else if (0.75 > rand2) {
+                            audio_hit3.playInstance();
+                        } else {
+                            audio_hit4.playInstance();
+                        }
+                    }
                     System.out.println("Hit enemy!");
                     enemyTank[i].hitPoints -= BULLETDAMAGE;
                     if (enemyTank[i].hitPoints <= 0) {
@@ -291,7 +337,7 @@ public class Game extends AbstractAppState implements ActionListener {
                             bullet.bullet.setLocalTranslation(-2000, -2000, -2000);
                             main.getRootNode().detachChild(bullet.bullet);
                         }
-//                        dissolveTank = new DissolveTank(main, enemyTank[i].enemyNode);
+//                        dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
 //                        enemyTank[i].enemyNode.addControl(dissolveTank);
                         main.getRootNode().detachChild(enemyTank[i].enemyNode);
                         float rand = FastMath.nextRandomFloat();
@@ -322,9 +368,10 @@ public class Game extends AbstractAppState implements ActionListener {
 
         for (int i = 0; i < ENEMYNUMBER; i++) {
             for (int j = 0; j < tank.missileList.size(); j++) {
-                BoundingVolume bv = tank.missileList.get(j).bullet.getWorldBound();
+                BoundingVolume bv = tank.missileList.get(j).missile.getWorldBound();
                 enemyTank[i].enemyNode.getChild(0).collideWith(bv, crs);
                 if (crs.size() > 0) {
+
 //                    dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
 //                    enemyTank[i].enemyNode.addControl(dissolveTank);
                     new ExplosionEffect(main, enemyTank[i].enemyNode, Vector3f.ZERO);
@@ -356,10 +403,6 @@ public class Game extends AbstractAppState implements ActionListener {
                         enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x
                                 + 1000, tank.tankNode.getWorldTranslation().y + 1000, tank.tankNode.getWorldTranslation().z + 1000);
                         enemyTank[i].hitPoints = 0;
-                        if (enemyRemain == 0) {
-                            texts[2].setText("Congratulations! You win the game!");
-                            texts[2].setLocalTranslation(gameEndPos);
-                        }
                     }
                     enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
                     //main.getRootNode().detachChild(tank.bulletList.get(j).bullet);
@@ -439,6 +482,30 @@ public class Game extends AbstractAppState implements ActionListener {
         tank.tankNode.attachChild(camNode);
     }
 
+    public void cleanAll() {
+        music = 4;
+        audio_nature.stop();
+        audio_hit1.stop();
+        main.getRootNode().detachChild(audio_hit1);
+        audio_hit2.stop();
+        main.getRootNode().detachChild(audio_hit2);
+        audio_hit3.stop();
+        main.getRootNode().detachChild(audio_hit3);
+        audio_hit4.stop();
+        main.getRootNode().detachChild(audio_hit4);
+        main.getRootNode().detachChild(audio_nature);
+        for (Powerup power : powerupList) {
+            main.getRootNode().detachChild(power);
+        }
+        for (int i = 0; i < ENEMYNUMBER; i++) {
+            main.getRootNode().detachChild(enemyTank[i].enemyNode);
+        }
+        for (int i = 0; i < 8; i++) {
+            main.getGuiNode().detachChild(texts[i]);
+        }
+        main.getRootNode().detachChild(tank.tankNode);
+    }
+
     public void initMat() {
         mats = new Material[4];
         mats[0] = main.getAssetManager()
@@ -449,12 +516,6 @@ public class Game extends AbstractAppState implements ActionListener {
                 .loadMaterial("Materials/Active/MultiplyColor_2.j3m");
         mats[3] = main.getAssetManager()
                 .loadMaterial("Materials/Active/MultiplyColor_3.j3m");
-    }
-
-    public void initKeys() {
-        main.getInputManager().addMapping("Pause", new KeyTrigger(KeyInput.KEY_P));
-        main.getInputManager().addMapping("Cheat", new KeyTrigger(KeyInput.KEY_C));
-        main.getInputManager().addListener(this, "Pause", "Cheat");
     }
 
     private void processor() {
@@ -474,5 +535,64 @@ public class Game extends AbstractAppState implements ActionListener {
         bloom.setExposurePower(1f);
         fpp.addFilter(bloom);
         main.getViewPort().addProcessor(fpp);
+    }
+
+    private void initAudio() {
+        audio_hit1 = new AudioNode(main.getAssetManager(), "Sound/hit-1.wav", false);
+        audio_hit1.setPositional(false);
+        audio_hit1.setLooping(false);
+        audio_hit1.setVolume(1);
+        main.getRootNode().attachChild(audio_hit1);
+
+        audio_hit2 = new AudioNode(main.getAssetManager(), "Sound/hit-2.wav", false);
+        audio_hit2.setPositional(false);
+        audio_hit2.setLooping(false);
+        audio_hit2.setVolume(1);
+        main.getRootNode().attachChild(audio_hit2);
+
+        audio_hit3 = new AudioNode(main.getAssetManager(), "Sound/hit-3.wav", false);
+        audio_hit3.setPositional(false);
+        audio_hit3.setLooping(false);
+        audio_hit3.setVolume(1);
+        main.getRootNode().attachChild(audio_hit3);
+
+        audio_hit4 = new AudioNode(main.getAssetManager(), "Sound/hit-4.wav", false);
+        audio_hit4.setPositional(false);
+        audio_hit4.setLooping(false);
+        audio_hit4.setVolume(1);
+        main.getRootNode().attachChild(audio_hit4);
+    }
+
+    private void initBGM1() {
+        audio_nature = new AudioNode(main.getAssetManager(), "Sound/Silver Surfer.ogg", true);
+        audio_nature.setPositional(false);
+        audio_nature.setLooping(false);
+        audio_nature.setVolume(3);
+        main.getRootNode().attachChild(audio_nature);
+        audio_nature.play();
+    }
+
+    private void initBGM2() {
+        audio_nature = new AudioNode(main.getAssetManager(), "Sound/Metal Squad.ogg", true);
+        audio_nature.setPositional(false);
+        audio_nature.setLooping(false);
+        audio_nature.setVolume(3);
+        main.getRootNode().attachChild(audio_nature);
+        audio_nature.play();
+    }
+
+    private void initBGM3() {
+        audio_nature = new AudioNode(main.getAssetManager(), "Sound/Pictionary.ogg", true);
+        audio_nature.setPositional(false);
+        audio_nature.setLooping(false);
+        audio_nature.setVolume(3);
+        main.getRootNode().attachChild(audio_nature);
+        audio_nature.play();
+    }
+
+    public void initKeys() {
+        main.getInputManager().addMapping("Pause", new KeyTrigger(KeyInput.KEY_P));
+        main.getInputManager().addMapping("Cheat", new KeyTrigger(KeyInput.KEY_C));
+        main.getInputManager().addListener(this, "Pause", "Cheat");
     }
 }

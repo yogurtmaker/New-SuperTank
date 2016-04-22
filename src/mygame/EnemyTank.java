@@ -1,5 +1,6 @@
 package mygame;
 
+import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -19,9 +20,11 @@ public class EnemyTank extends Enemy {
     Random rn;
     String[] states = {"RotateLeft", "RotateRight", "WalkForward", "WalkBackward", "Shoot", "Stop"};
     String binding = states[5];
+    private AudioNode audio_bullet1, audio_bullet2;
     Vector3f bulletPosition, velocity, tankPostion, playerDirection, leftDirection,
             rightDirection, view = new Vector3f(0, 0, 0), escapePos;
-    public boolean walk = false, attached = false, detached = false, bulletCreated = false, track = false, escape = false, second = false;
+    public boolean walk = false, attached = false, detached = false, bulletCreated = false,
+            track = false, escape = false, second = false;
     float stateTime, frequency, resetTime, time = 0, delay = 0, time2 = 0, time3 = 0;
     final int ROTATETIME = 5, WALKTIME = 5, FORCETIME = 3, SHOOTTIME = 10, TRACKDISTANCE = 450, ATTACKDISTANCE = 200,
             STOPTIME = 3, LEVELUPTIME = 60;
@@ -37,6 +40,7 @@ public class EnemyTank extends Enemy {
     public EnemyTank(Main main, Material mat) {
         super(main, "Models/HoverTank/Tank2.mesh.xml", mat);
         initStuff();
+        initSound();
     }
 
     void initStuff() {
@@ -167,6 +171,9 @@ public class EnemyTank extends Enemy {
         Quaternion limLeft = new Quaternion().fromAngles(0, 0, -FastMath.PI / 4);
         Quaternion limRight = new Quaternion().fromAngles(0, 0, FastMath.PI / 4);
         time += tpf;
+        if (enemyNode.getWorldTranslation().y < 140) {
+            enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 100 - 50, playerPos.y, playerPos.z + (float) Math.random() * 100 - 50));
+        }
         delay = delay - tpf;
         for (Bullet bullet : bulletList) {
             bullet.update(tpf);
@@ -249,6 +256,12 @@ public class EnemyTank extends Enemy {
                             main.getRootNode().attachChild(bullet.bullet);
                             bulletCreated = true;
                             time2 = time;
+                            float rand = FastMath.nextRandomFloat();
+                            if (0.5 > rand) {
+                                audio_bullet1.playInstance();
+                            } else {
+                                audio_bullet2.playInstance();
+                            }
                         }
                     } else {
                         bulletCreated = false;
@@ -332,5 +345,19 @@ public class EnemyTank extends Enemy {
                 shootTime = 0;
             }
         }
+    }
+
+    private void initSound() {
+        audio_bullet1 = new AudioNode(main.getAssetManager(), "Sound/bullet-1.wav", false);
+        audio_bullet1.setPositional(false);
+        audio_bullet1.setLooping(false);
+        audio_bullet1.setVolume(1);
+        main.getRootNode().attachChild(audio_bullet1);
+
+        audio_bullet2 = new AudioNode(main.getAssetManager(), "Sound/bullet-2.wav", false);
+        audio_bullet2.setPositional(false);
+        audio_bullet2.setLooping(false);
+        audio_bullet2.setVolume(1);
+        main.getRootNode().attachChild(audio_bullet2);
     }
 }

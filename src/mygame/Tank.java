@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.audio.AudioNode;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -32,6 +33,7 @@ public class Tank {
     List<Missile> missileList;
     Shield shield;
     Dust dust;
+    AudioNode audio_shield, audio_bullet1, audio_bullet2, audio_missile1, audio_missile2;
     Geometry bar, mapGeo, playerDot, direction;
     Node mapPlayer = new Node();
     Geometry[] enemyDots = new Geometry[Game.ENEMYNUMBER];
@@ -49,6 +51,7 @@ public class Tank {
         this.main = main;
         initTank();
         initKeys();
+        initSound();
     }
 
     private void initTank() {
@@ -138,12 +141,19 @@ public class Tank {
                     bullet.bullet.setLocalRotation(tankNode.getLocalRotation());
                     bulletList.add(bullet);
                     main.getRootNode().attachChild(bullet.bullet);
+                    float rand = FastMath.nextRandomFloat();
+                    if (0.5 > rand) {
+                        audio_bullet1.playInstance();
+                    } else {
+                        audio_bullet2.playInstance();
+                    }
                 }
             } else if (binding.equals("Shield")) {
                 if (isPressed) {
                     if (!second) {
                         force = true;
                         second = true;
+                        audio_shield.playInstance();
                     } else {
                         force = false;
                         second = false;
@@ -157,6 +167,12 @@ public class Tank {
                     missile.bullet.setLocalRotation(tankNode.getLocalRotation());
                     missileList.add(missile);
                     main.getRootNode().attachChild(missile.bullet);
+                    float rand = FastMath.nextRandomFloat();
+                    if (0.5 > rand) {
+                        audio_missile1.playInstance();
+                    } else {
+                        audio_missile2.playInstance();
+                    }
                 }
             }
         }
@@ -260,7 +276,7 @@ public class Tank {
         walkDirection.set(0, 0, 0);
         time = time + tpf;
         float revise = 4.5f;
-        if (time > 10f) {
+        if (time > 15f) {
             tankControl.setGravity(30f);
             if (forward) {
                 walkDirection.addLocal(camDir.mult(5f));
@@ -341,5 +357,37 @@ public class Tank {
                 tankControl.setWalkDirection(Vector3f.ZERO);
             }
         }
+    }
+
+    private void initSound() {
+        audio_shield = new AudioNode(main.getAssetManager(), "Sound/shield.wav", false);
+        audio_shield.setPositional(false);
+        audio_shield.setLooping(false);
+        audio_shield.setVolume(1);
+        main.getRootNode().attachChild(audio_shield);
+
+        audio_bullet1 = new AudioNode(main.getAssetManager(), "Sound/bullet-1.wav", false);
+        audio_bullet1.setPositional(false);
+        audio_bullet1.setLooping(false);
+        audio_bullet1.setVolume(1);
+        main.getRootNode().attachChild(audio_bullet1);
+
+        audio_bullet2 = new AudioNode(main.getAssetManager(), "Sound/bullet-2.wav", false);
+        audio_bullet2.setPositional(false);
+        audio_bullet2.setLooping(false);
+        audio_bullet2.setVolume(1);
+        main.getRootNode().attachChild(audio_bullet2);
+
+        audio_missile1 = new AudioNode(main.getAssetManager(), "Sound/missile-1.wav", false);
+        audio_missile1.setPositional(false);
+        audio_missile1.setLooping(false);
+        audio_missile1.setVolume(1);
+        main.getRootNode().attachChild(audio_missile1);
+
+        audio_missile2 = new AudioNode(main.getAssetManager(), "Sound/missile-2.wav", false);
+        audio_missile2.setPositional(false);
+        audio_missile2.setLooping(false);
+        audio_missile2.setVolume(1);
+        main.getRootNode().attachChild(audio_missile2);
     }
 }

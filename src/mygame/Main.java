@@ -22,12 +22,11 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-
         initPhysics();
         ground = new Ground(this);
         sky = new Sky(this);
-        Game game = new Game(true);
-        stateManager.attach(game);
+        StartScreen st = new StartScreen(this);
+        stateManager.attach(st);
 
     }
 
