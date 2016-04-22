@@ -12,7 +12,9 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
+import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -44,13 +46,13 @@ public class Game extends AbstractAppState implements ActionListener {
     boolean[] dieStatus = new boolean[ENEMYNUMBER];
     Enemy[] enemyTank;
     DissolveTank dissolveTank;
-    Vector3f playerBarPos = new Vector3f(820, 355, 0), gameEndPos = new Vector3f(520, 750, 0),
+    Vector3f playerBarPos = new Vector3f(820, 355, 0), gameEndPos = new Vector3f(620, 580, 0),
             numOfBulletRemainPos = new Vector3f(20, 800, 0);
     Material mats[];
-    public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20, RESPAWNTIME = 5;
+    public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20, RESPAWNTIME = 20;
     boolean rotate = false;
     int enemyRemain = 4;
-    boolean pause = false, isDemo;
+    boolean pause = false, isDemo, cheat = false;
     List<Powerup> powerupList;
     float[] dieTime = new float[ENEMYNUMBER];
     float time = 0;
@@ -71,6 +73,7 @@ public class Game extends AbstractAppState implements ActionListener {
         initMat();
         createCharacter();
         initCam();
+        initKeys();
     }
 
     @Override
@@ -78,11 +81,20 @@ public class Game extends AbstractAppState implements ActionListener {
         time += tpf;
         if (pause) {
             for (int i = 0; i < ENEMYNUMBER; i++) {
+                texts[2].setText("Game is paused");
+                texts[2].setLocalTranslation(gameEndPos);
                 enemyTank[i].enemyControl.setWalkDirection(Vector3f.ZERO);
                 tank.tankControl.setWalkDirection(Vector3f.ZERO);
             }
+        } else if (cheat) {
+            tank.hitPoints = 1000;
+            tank.bar.setLocalScale(1, 1, 1);
+            tank.numberOfBulletRemain = 1000;
+            tank.numOfMissile = 300;
+            cheat = false;
         } else {
-            texts[3].setText("Bullet remain:" + tank.numberOfBulletRemain);
+            texts[2].setLocalTranslation(0, 0, 0);
+            texts[3].setText("Bullet remain:" + tank.numberOfBulletRemain + ". Missile remain:" + tank.numOfMissile);
             for (int i = 0; i < ENEMYNUMBER; i++) {
                 enemyPos[i] = enemyTank[i].enemyNode.getWorldTranslation();
             }
@@ -164,7 +176,9 @@ public class Game extends AbstractAppState implements ActionListener {
                             texts[2].setLocalTranslation(gameEndPos);
                             tank.hitPoints = 0;
                         }
-                        tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                        if (tank.hitPoints < 100) {
+                            tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                        }
                         main.getRootNode().detachChild(enemyTank[i].bulletList.get(j).bullet);
                         enemyTank[i].bulletList.remove(enemyTank[i].bulletList.get(j));
                         crs.clear();
@@ -181,10 +195,13 @@ public class Game extends AbstractAppState implements ActionListener {
                 switch (pUp.num) {
                     case 1:
                         tank.hitPoints += BULLETDAMAGE;
-                        tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                        if (tank.hitPoints < 100) {
+                            tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                        }
                         break;
                     case 2:
                         tank.numberOfBulletRemain += 100;
+                        tank.numOfMissile++;
                         break;
                     case 3:
                         tank.shield.hitPoints += BULLETDAMAGE;
@@ -200,10 +217,12 @@ public class Game extends AbstractAppState implements ActionListener {
                     switch (pUp.num) {
                         case 1:
                             tank.hitPoints += BULLETDAMAGE;
-                            tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
-                            break;
+                            if (tank.hitPoints < 100) {
+                                tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
+                            }
                         case 2:
                             tank.numberOfBulletRemain += 100;
+                            tank.numOfMissile++;
                             break;
 
                         case 3:
@@ -267,7 +286,7 @@ public class Game extends AbstractAppState implements ActionListener {
                             bullet.bullet.setLocalTranslation(-2000, -2000, -2000);
                             main.getRootNode().detachChild(bullet.bullet);
                         }
-//                        dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
+//                        dissolveTank = new DissolveTank(main, enemyTank[i].enemyNode);
 //                        enemyTank[i].enemyNode.addControl(dissolveTank);
                         main.getRootNode().detachChild(enemyTank[i].enemyNode);
                         float rand = FastMath.nextRandomFloat();
@@ -353,8 +372,10 @@ public class Game extends AbstractAppState implements ActionListener {
     }
 
     public void onAction(String name, boolean isPressed, float tpf) {
-        if (name.equals("Start") && isPressed) {
+        if (name.equals("Pause") && isPressed) {
             pause = !pause;
+        } else if (name.equals("Cheat") && isPressed) {
+            cheat = true;
         }
     }
 
@@ -428,6 +449,12 @@ public class Game extends AbstractAppState implements ActionListener {
                 .loadMaterial("Materials/Active/MultiplyColor_2.j3m");
         mats[3] = main.getAssetManager()
                 .loadMaterial("Materials/Active/MultiplyColor_3.j3m");
+    }
+
+    public void initKeys() {
+        main.getInputManager().addMapping("Pause", new KeyTrigger(KeyInput.KEY_P));
+        main.getInputManager().addMapping("Cheat", new KeyTrigger(KeyInput.KEY_C));
+        main.getInputManager().addListener(this, "Pause", "Cheat");
     }
 
     private void processor() {

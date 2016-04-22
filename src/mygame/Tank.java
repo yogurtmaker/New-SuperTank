@@ -43,7 +43,7 @@ public class Tank {
     private int resetTime;
     public float time = 0, delay = 0, hitPoints = 100;
     Vector3f shieldBarPos = new Vector3f(820, 500, 0);
-    int numberOfBulletRemain = 100;
+    int numberOfBulletRemain = 100, numOfMissile = 5;
 
     public Tank(Main main) {
         this.main = main;
@@ -150,11 +150,14 @@ public class Tank {
                     }
                 }
             } else if (binding.equals("Missile") && isPressed && delay <= 0) {
-                Missile missile = new Missile(main, bulletStartNode.getWorldTranslation(),
-                        tankNode.getWorldTranslation());
-                missile.bullet.setLocalRotation(tankNode.getLocalRotation());
-                missileList.add(missile);
-                main.getRootNode().attachChild(missile.bullet);
+                if (numOfMissile > 0) {
+                    numOfMissile--;
+                    Missile missile = new Missile(main, bulletStartNode.getWorldTranslation(),
+                            tankNode.getWorldTranslation());
+                    missile.bullet.setLocalRotation(tankNode.getLocalRotation());
+                    missileList.add(missile);
+                    main.getRootNode().attachChild(missile.bullet);
+                }
             }
         }
     };
