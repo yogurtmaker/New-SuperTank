@@ -26,9 +26,6 @@ import com.jme3.scene.control.CameraControl;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
-import static mygame.Game.BULLETDAMAGE;
-import static mygame.Game.ENEMYNUMBER;
-import static mygame.Game.RESPAWNTIME;
 
 public class Game extends AbstractAppState implements ActionListener {
 
