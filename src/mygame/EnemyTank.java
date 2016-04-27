@@ -171,9 +171,7 @@ public class EnemyTank extends Enemy {
         Quaternion limLeft = new Quaternion().fromAngles(0, 0, -FastMath.PI / 4);
         Quaternion limRight = new Quaternion().fromAngles(0, 0, FastMath.PI / 4);
         time += tpf;
-        if (enemyNode.getWorldTranslation().y < 140) {
-            enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 100 - 50, playerPos.y, playerPos.z + (float) Math.random() * 100 - 50));
-        }
+        System.out.println(enemyNode.getWorldTranslation());
         delay = delay - tpf;
         for (Bullet bullet : bulletList) {
             bullet.update(tpf);

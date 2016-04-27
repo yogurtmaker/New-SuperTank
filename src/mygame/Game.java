@@ -129,7 +129,7 @@ public class Game extends AbstractAppState implements ActionListener {
                         enemyRemain++;
                         enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
                         Vector3f playerPos = tank.tankNode.getWorldTranslation();
-                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 50 - 25, 160, playerPos.z + (float) Math.random() * 50 - 25));
+                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 50 - 25, 180, playerPos.z + (float) Math.random() * 50 - 25));
                     }
                 } else {
                     texts[i + 4].setLocalTranslation(0, 0, 0);
