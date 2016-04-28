@@ -5,6 +5,7 @@ import com.jme3.audio.AudioNode;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
@@ -46,6 +47,7 @@ public class Tank {
     public float time = 0, delay = 0, hitPoints = 100;
     Vector3f shieldBarPos = new Vector3f(820, 500, 0);
     int numberOfBulletRemain = 100, numOfMissile = 5;
+    BitmapText text1;
 
     public Tank(Main main) {
         this.main = main;
@@ -86,6 +88,12 @@ public class Tank {
         bar.setQueueBucket(RenderQueue.Bucket.Transparent);
         tankNode.attachChild(bar);
         makeMap();
+
+        BitmapFont bmf = main.getAssetManager().loadFont("Interface/Fonts/Console.fnt");
+        text1 = new BitmapText(bmf);
+        text1.setSize(bmf.getCharSet().getRenderedSize() * 2);
+        text1.setColor(ColorRGBA.Red);
+        main.getGuiNode().attachChild(text1);
 
     }
     private ActionListener actionListener = new ActionListener() {
@@ -276,7 +284,12 @@ public class Tank {
         walkDirection.set(0, 0, 0);
         time = time + tpf;
         float revise = 4.5f;
-        if (time > 15f) {
+        if (time < 15f) {
+            text1.setLocalTranslation(540, 480, 0);
+            String t = String.format("Game starts in %.1f seconds", (15 - time));
+            text1.setText(t);
+        } else {
+            text1.setLocalTranslation(0, 0, 0);
             tankControl.setGravity(30f);
             if (forward) {
                 walkDirection.addLocal(camDir.mult(5f));

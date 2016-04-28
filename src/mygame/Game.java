@@ -29,7 +29,7 @@ import java.util.List;
 
 public class Game extends AbstractAppState implements ActionListener {
 
-    BitmapText[] texts;
+    BitmapText[] texts, remindTexts;
     static Dimension screen;
     private Node modelPlayer;
     private Node[] modelEnemyTank;
@@ -48,7 +48,7 @@ public class Game extends AbstractAppState implements ActionListener {
     Vector3f playerBarPos = new Vector3f(820, 355, 0), gameEndPos = new Vector3f(620, 580, 0),
             numOfBulletRemainPos = new Vector3f(20, 800, 0);
     Material mats[];
-    public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20, RESPAWNTIME = 20;
+    public static final int ENEMYNUMBER = 4, BULLETDAMAGE = 20, RESPAWNTIME = 5;
     boolean rotate = false;
     int enemyRemain = 4;
     int music = 1;
@@ -120,13 +120,15 @@ public class Game extends AbstractAppState implements ActionListener {
                     texts[i + 4].setText(t);
                     texts[i + 4].setLocalTranslation(respawnPos[i]);
                     if ((time - dieTime[i]) > RESPAWNTIME) {
-                        main.getRootNode().attachChild(enemyTank[i].enemyNode);
                         enemyTank[i].hitPoints = 100;
                         dieStatus[i] = false;
                         enemyRemain++;
                         enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
                         Vector3f playerPos = tank.tankNode.getWorldTranslation();
-                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 50 - 25, 180, playerPos.z + (float) Math.random() * 50 - 25));
+                        enemyTank[i].enemyNode.setLocalTranslation(new Vector3f(playerPos.x + (float) Math.random() * 10 - 5, 160, playerPos.z + (float) Math.random() * 10 - 25));
+                        enemyTank[i].enemyControl.setGravity(20);
+                        main.getRootNode().attachChild(enemyTank[i].enemyNode);
+                        enemyTank[i].updateEnemy(tpf, tank.tankNode.getWorldTranslation(), enemyRemain);
                     }
                 } else {
                     texts[i + 4].setLocalTranslation(0, 0, 0);
@@ -351,8 +353,8 @@ public class Game extends AbstractAppState implements ActionListener {
                         enemyDiePos[i] = enemyTank[i].enemyNode.getWorldTranslation();
                         dieStatus[i] = true;
                         dieTime[i] = time;
-                        enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x
-                                + 1000, tank.tankNode.getWorldTranslation().y + 1000, tank.tankNode.getWorldTranslation().z + 1000);
+                        enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x + 1000, 1000, tank.tankNode.getWorldTranslation().z + 1000);
+                        enemyTank[i].enemyControl.setGravity(0);
                         enemyTank[i].hitPoints = 0;
                     }
                     enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
@@ -397,8 +399,8 @@ public class Game extends AbstractAppState implements ActionListener {
                         enemyDiePos[i] = enemyTank[i].enemyNode.getWorldTranslation();
                         dieStatus[i] = true;
                         dieTime[i] = time;
-                        enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x
-                                + 1000, tank.tankNode.getWorldTranslation().y + 1000, tank.tankNode.getWorldTranslation().z + 1000);
+                        enemyTank[i].enemyNode.setLocalTranslation(tank.tankNode.getWorldTranslation().x + 1000, 1000, tank.tankNode.getWorldTranslation().z + 1000);
+                        enemyTank[i].enemyControl.setGravity(0);
                         enemyTank[i].hitPoints = 0;
                     }
                     enemyTank[i].bar.setLocalScale((float) (enemyTank[i].hitPoints / 100.0), 1, 1);
@@ -423,6 +425,19 @@ public class Game extends AbstractAppState implements ActionListener {
     public void initText() {
         BitmapFont bmf = main.getAssetManager().loadFont("Interface/Fonts/Console.fnt");
         texts = new BitmapText[8];
+        remindTexts = new BitmapText[4];
+        for (int j = 0; j < 3; j++) {
+            remindTexts[j] = new BitmapText(bmf);
+            remindTexts[j].setSize(bmf.getCharSet().getRenderedSize() * 2);
+            remindTexts[j].setColor(ColorRGBA.Black);
+            main.getGuiNode().attachChild(remindTexts[j]);
+        }
+        remindTexts[0].setText("Press s or d to shoot a bullet or missile.");
+        remindTexts[1].setText("Press left, up, left or right to move.");
+        remindTexts[2].setText("Press c to cheat.Press t for shield. Press m for map.");
+        remindTexts[0].setLocalTranslation(20, 680, 0);
+        remindTexts[2].setLocalTranslation(20, 660, 0);
+        remindTexts[1].setLocalTranslation(20, 640, 0);
         for (int j = 0; j < 8; j++) {
             texts[j] = new BitmapText(bmf);
             texts[j].setSize(bmf.getCharSet().getRenderedSize() * 2);

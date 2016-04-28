@@ -171,7 +171,6 @@ public class EnemyTank extends Enemy {
         Quaternion limLeft = new Quaternion().fromAngles(0, 0, -FastMath.PI / 4);
         Quaternion limRight = new Quaternion().fromAngles(0, 0, FastMath.PI / 4);
         time += tpf;
-        System.out.println(enemyNode.getWorldTranslation());
         delay = delay - tpf;
         for (Bullet bullet : bulletList) {
             bullet.update(tpf);
