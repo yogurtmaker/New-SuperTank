@@ -493,20 +493,18 @@ public class Game extends AbstractAppState implements ActionListener {
 
     public void cleanAll() {
         for (int i = 0; i < ENEMYNUMBER; i++) {
-            for (int j = 0; j < enemyTank[i].bulletList.size(); j++) {
-                main.getRootNode().detachChild(enemyTank[i].bulletList.get(j).bullet);
-                enemyTank[i].bulletList.remove(enemyTank[i].bulletList.get(j));
-
+            for (Bullet bullet : enemyTank[i].bulletList) {
+                bullet.bullet.setLocalTranslation(-2000, -2000, -2000);
+                main.getRootNode().detachChild(bullet.bullet);
             }
         }
-        for (int j = 0; j < tank.bulletList.size(); j++) {
-            main.getRootNode().detachChild(tank.bulletList.get(j).bullet);
-            tank.bulletList.remove(tank.bulletList.get(j));
+        for (Bullet bullet : tank.bulletList) {
+            bullet.bullet.setLocalTranslation(-2000, -2000, -2000);
+            main.getRootNode().detachChild(bullet.bullet);
         }
-        for (int j = 0; j < tank.missileList.size(); j++) {
-            main.getRootNode().detachChild(tank.missileList.get(j).bullet);
-            tank.missileList.remove(tank.missileList.get(j));
-
+        for (Missile missile : tank.missileList) {
+            missile.bullet.setLocalTranslation(-2000, -2000, -2000);
+            main.getRootNode().detachChild(missile.bullet);
         }
         music = 4;
         audio_nature.stop();
