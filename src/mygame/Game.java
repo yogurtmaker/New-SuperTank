@@ -211,7 +211,6 @@ public class Game extends AbstractAppState implements ActionListener {
                                 audio_hit4.playInstance();
                             }
                         }
-                        System.out.println("Hit player!");
                         tank.hitPoints -= BULLETDAMAGE;
                         if (tank.hitPoints < 100) {
                             tank.bar.setLocalScale((float) (tank.hitPoints / 100.0), 1, 1);
@@ -328,7 +327,6 @@ public class Game extends AbstractAppState implements ActionListener {
                             audio_hit4.playInstance();
                         }
                     }
-                    System.out.println("Hit enemy!");
                     enemyTank[i].hitPoints -= BULLETDAMAGE;
                     if (enemyTank[i].hitPoints <= 0) {
                         enemyRemain--;
@@ -374,7 +372,6 @@ public class Game extends AbstractAppState implements ActionListener {
 //                    dissolveTank = new DissolveTank(this, enemyTank[i].enemyNode);
 //                    enemyTank[i].enemyNode.addControl(dissolveTank);
                     new ExplosionEffect(main, enemyTank[i].enemyNode, Vector3f.ZERO);
-                    System.out.println("Hit enemy!");
                     enemyTank[i].hitPoints -= BULLETDAMAGE;
                     if (enemyTank[i].hitPoints <= 0) {
                         enemyRemain--;
@@ -514,6 +511,9 @@ public class Game extends AbstractAppState implements ActionListener {
         }
         for (int i = 0; i < 8; i++) {
             main.getGuiNode().detachChild(texts[i]);
+        }
+        for (int i = 0; i < 3; i++) {
+            main.getGuiNode().detachChild(remindTexts[i]);
         }
         main.getRootNode().detachChild(tank.tankNode);
     }

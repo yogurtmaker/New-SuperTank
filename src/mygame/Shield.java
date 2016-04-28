@@ -25,7 +25,7 @@ public class Shield implements ActionListener {
     Node nodeshield;
     public ForceShieldControl forceShieldControl;
     Geometry bar;
-    float hitPoints = 50;
+    float hitPoints = 100;
 
     public Shield(Main main) {
         this.main = main;

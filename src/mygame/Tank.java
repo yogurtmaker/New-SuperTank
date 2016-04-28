@@ -46,7 +46,7 @@ public class Tank {
     private int resetTime;
     public float time = 0, delay = 0, hitPoints = 100;
     Vector3f shieldBarPos = new Vector3f(820, 500, 0);
-    int numberOfBulletRemain = 100, numOfMissile = 5;
+    int numberOfBulletRemain = 100, numOfMissile = 10;
     BitmapText text1;
 
     public Tank(Main main) {
